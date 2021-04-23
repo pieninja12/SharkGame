@@ -5,7 +5,7 @@ SharkGame.Gate = {
     tabBg: "img/bg/bg-gate.png",
 
     discoverReq: {
-        upgrade: ["gateDiscovery", "farAbandonedExploration"],
+        upgrade: ["gateDiscovery", "farAbandonedExploration", "farHavenExploration"],
     },
 
     message: "A foreboding circular structure, closed shut.<br/>There are many slots, and a sign you know to mean 'insert items here'.",
@@ -52,20 +52,32 @@ SharkGame.Gate = {
 
             gt.completedRequirements.slots = {};
             // create costsMet
-            $.each(gt.requirements.slots, (k, v) => {
+            $.each(gt.requirements.slots, (k) => {
                 gt.completedRequirements.slots[k] = false;
             });
         }
 
         if (gateRequirements.upgrades) {
             gt.requirements.upgrades = {};
-            $.each(gateRequirements.upgrades, (k, v) => {
+            $.each(gateRequirements.upgrades, (_key, v) => {
                 gt.requirements.upgrades[v] = "placeholder";
             });
 
             gt.completedRequirements.upgrades = {};
-            $.each(gt.requirements.upgrades, (k, v) => {
+            $.each(gt.requirements.upgrades, (k) => {
                 gt.completedRequirements.upgrades[k] = false;
+            });
+        }
+
+        if (gateRequirements.resources) {
+            gt.requirements.resources = {};
+            $.each(gateRequirements.resources, (k, v) => {
+                gt.requirements.resources[k] = v;
+            });
+
+            gt.completedRequirements.resources = {};
+            $.each(gt.requirements.resources, (k) => {
+                gt.completedRequirements.resources[k] = false;
             });
         }
     },
@@ -76,7 +88,8 @@ SharkGame.Gate = {
         content.append($("<div>").attr("id", "tabMessage"));
         content.append($("<div>").attr("id", "buttonList"));
 
-        let amountOfSlots = 0;
+        SharkGame.Gate.getResourcesLeft();
+
         if (!gt.shouldBeOpen()) {
             if (SharkGame.WorldTypes[w.worldType].gateRequirements.slots) {
                 const buttonList = $("#buttonList");
@@ -91,7 +104,6 @@ SharkGame.Gate = {
                             gt.onHover,
                             gt.onUnhover
                         );
-                        amountOfSlots++;
                     }
                 });
             }
@@ -116,6 +128,7 @@ SharkGame.Gate = {
 
         const slotsLeft = gt.getSlotsLeft();
         const upgradesLeft = gt.getUpgradesLeft();
+        const resourcesLeft = gt.getResourcesLeft();
 
         // this intentionally checks for !== false because if it is specifically false, then getSlotsLeft() found that this world has no slots
         if (slotsLeft !== false) {
@@ -128,8 +141,8 @@ SharkGame.Gate = {
             // in this situation simply assume slotsLeft === 0 and continue with execution
         }
 
-        // if there are no slots then see if there are any upgrades needed
-        if (upgradesLeft !== false) {
+        // if there are no slots then see if there are any upgrades or resources needed
+        if (upgradesLeft !== false || resourcesLeft !== false) {
             return gt.messagePaidNotOpen;
         }
 
@@ -141,28 +154,44 @@ SharkGame.Gate = {
 
     getSlotsLeft() {
         const gt = SharkGame.Gate;
-        let slots = 0;
+        let incompleteSlots = 0;
         // counts up the number of slots which are *not* filled
-        $.each(gt.completedRequirements.slots, (k, v) => {
-            slots += v ? 0 : 1;
+        _.each(gt.completedRequirements.slots, (completed) => {
+            incompleteSlots += completed ? 0 : 1;
         });
 
         // if there are any slots in the first place, return the number of slots unfilled
         // if there are not any slots, return false to identify this fact
-        return _.size(gt.requirements.slots) !== 0 ? slots : false;
+        return _.size(gt.requirements.slots) !== 0 ? incompleteSlots : false;
     },
 
     getUpgradesLeft() {
         const gt = SharkGame.Gate;
-        let upgrades = 0;
+        let incompleteUpgrades = 0;
         // counts up the number of required upgrades which are *not* purchased
-        $.each(gt.completedRequirements.upgrades, (k, v) => {
-            upgrades += v ? 0 : 1;
+        _.each(gt.completedRequirements.upgrades, (v) => {
+            incompleteUpgrades += v ? 0 : 1;
         });
 
         // if there are any required upgrades in the first place, return the number of still required upgrades
         // if there are not any required upgrades, return false to identify this fact
-        return _.size(gt.requirements.upgrades) !== 0 ? upgrades : false;
+        return _.size(gt.requirements.upgrades) !== 0 ? incompleteUpgrades : false;
+    },
+
+    getResourcesLeft() {
+        const gt = SharkGame.Gate;
+
+        $.each(gt.completedRequirements.resources, (k) => {
+            gt.checkResourceRequirements(k);
+        });
+
+        const remaining = [];
+        $.each(gt.completedRequirements.resources, (k, v) => {
+            if (v) {
+                remaining.push(k);
+            }
+        });
+        return remaining ? remaining : false;
     },
 
     onHover() {
@@ -239,13 +268,7 @@ SharkGame.Gate = {
 
     shouldBeOpen() {
         const gt = SharkGame.Gate;
-        let won = true;
-        $.each(gt.completedRequirements, (_, v) => {
-            $.each(v, (k, req) => {
-                won = won && req;
-            });
-        });
-        return won;
+        return _.every(gt.completedRequirements, (requirementType) => _.every(requirementType));
     },
 
     checkUpgradeRequirements(upgradeName) {
@@ -257,10 +280,20 @@ SharkGame.Gate = {
         }
     },
 
+    checkResourceRequirements(resourceName) {
+        const gt = SharkGame.Gate;
+        if (gt.requirements.resources) {
+            if (r.getResource(resourceName) >= gt.requirements.resources[resourceName]) {
+                gt.completedRequirements.resources[resourceName] = true;
+            }
+        }
+    },
+
     getSceneImagePath() {
         const gt = SharkGame.Gate;
         const slotsLeft = gt.getSlotsLeft();
         const upgradesLeft = gt.getUpgradesLeft();
+        const resourcesLeft = gt.getResourcesLeft();
 
         // lots of complicated logic here
         // basically:
@@ -273,9 +306,9 @@ SharkGame.Gate = {
             return gt.sceneOpenImage;
         } else if (slotsLeft > 1) {
             return gt.sceneClosedImage;
-        } else if (slotsLeft === 1 && !upgradesLeft) {
+        } else if (slotsLeft === 1 && !upgradesLeft && !resourcesLeft) {
             return gt.sceneAlmostOpenImage;
-        } else if (!slotsLeft && upgradesLeft) {
+        } else if (!slotsLeft && (upgradesLeft || resourcesLeft)) {
             return gt.sceneClosedButFilledImage;
         } else {
             return gt.sceneClosedImage;

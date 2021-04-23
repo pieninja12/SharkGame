@@ -1,6 +1,14 @@
 /*------------------------------------------------------
   MIXINS
 -------------------------------------------------------*/
+.fill-available-width {
+  width: 100%;
+  width: fill-available;
+  width: -moz-available;
+  /* WebKit-based browsers will ignore this. */
+  width: -webkit-fill-available;
+  /* Mozilla-based browsers will ignore this. */
+}
 .clear-fix {
   display: block;
   zoom: 1;
@@ -49,12 +57,12 @@
   --color-title: rgba(77, 122, 153, 0.2);
 }
 :root :not(.no-theme).haven {
-  --color-lighter: #97b1be;
-  --color-light: #6493aa;
-  --color-med: #3c7896;
-  --color-dark: #205f7e;
-  --color-darker: #0b4766;
-  --color-title: rgba(60, 120, 150, 0.2);
+  --color-lighter: #699eaa;
+  --color-light: #2f7591;
+  --color-med: #1d5372;
+  --color-dark: #083b53;
+  --color-darker: #002f42;
+  --color-title: rgba(29, 83, 114, 0.2);
 }
 :root :not(.no-theme).shrouded {
   --color-lighter: #22bec3;
@@ -90,7 +98,7 @@ body {
   color: white;
   background-color: var(--color-darker);
   font-family: Verdana, Geneva, sans-serif;
-  font-size: 105%;
+  font-size: 13pt;
   text-align: center;
   min-height: 100%;
   overflow-y: scroll;
@@ -198,6 +206,11 @@ pre {
   background: linear-gradient(var(--color-title), var(--color-title)), var(--color-med) url("../img/sharklogo.png") no-repeat center;
   text-shadow: 2px 2px 3px var(--color-darker);
 }
+#title.radical {
+  background-image: url("../img/sharklogo_radical.png");
+  background-position: center;
+  background-repeat: no-repeat;
+}
 #title h1 {
   margin: 0.1em auto 0.3em auto;
 }
@@ -207,6 +220,61 @@ pre {
 }
 #title h4 {
   margin: 0.2em auto 1.5em;
+}
+.top-bar {
+  margin-top: 35px;
+}
+.top-bar #title {
+  padding: 0;
+  width: 100%;
+  height: 32px;
+  position: fixed;
+  background-image: none;
+  font-size: initial;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
+  -webkit-box-shadow: 0 4px 4px 4px var(--color-darker);
+  -moz-box-shadow: 0 4px 4px 4px var(--color-darker);
+  box-shadow: 0 4px 4px 4px var(--color-darker);
+}
+.top-bar #title #titlebar {
+  width: 100%;
+}
+.top-bar #title #gameName,
+.top-bar #title #versionNumber,
+.top-bar #title #updateGame {
+  display: none;
+}
+.top-bar #title #titlemenu,
+.top-bar #title #subtitlemenu {
+  float: left;
+  font-size: initial;
+  height: auto;
+  margin: 0.2em 0.8em;
+  overflow: hidden;
+  text-align: center;
+  font-weight: bold;
+}
+.top-bar #title #titlemenu a:link,
+.top-bar #title #subtitlemenu a:link,
+.top-bar #title #titlemenu a:visited,
+.top-bar #title #subtitlemenu a:visited {
+  color: var(--color-lighter);
+  filter: none;
+}
+.top-bar #title #titlemenu a:hover,
+.top-bar #title #subtitlemenu a:hover {
+  filter: brightness(130%);
+}
+.top-bar #title #subtitlemenu {
+  float: right;
+}
+.top-bar #title li {
+  font-size: initial;
 }
 #titlebar {
   height: auto;
@@ -274,7 +342,7 @@ pre {
 }
 #contentMenu #tabButtons {
   float: right;
-  width: 50em;
+  text-align: right;
   overflow: auto;
 }
 #sidebar {
@@ -293,12 +361,16 @@ pre {
   text-shadow: 0px 0px 2px #000000;
 }
 #sidebar #resourceTableContainer {
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0;
 }
-#sidebar table {
-  margin-left: auto;
-  margin-right: auto;
+#sidebar #resourceTableContainer table {
+  width: 100%;
+  width: fill-available;
+  width: -moz-available;
+  /* WebKit-based browsers will ignore this. */
+  width: -webkit-fill-available;
+  /* Mozilla-based browsers will ignore this. */
+  margin: 0;
   background-color: var(--color-darker);
   border: 1px solid var(--color-lighter);
   padding: 0.5em;
@@ -306,7 +378,7 @@ pre {
   text-align: left;
   border-spacing: 0 0.1em;
 }
-#sidebar table h3 {
+#sidebar #resourceTableContainer table h3 {
   padding: 0.2em;
   width: auto;
   margin: auto;
@@ -335,14 +407,14 @@ pre {
   margin: 0;
 }
 #status {
-  padding: 5px;
   margin: 5px;
+  padding: 0;
 }
 #log {
   padding: 5px;
   margin: 5px;
   overflow: hidden;
-  /* overflow anchor fixes jittering! 
+  /* overflow anchor fixes jittering!
     It disables scroll anchoring where chrome tries to help by scrolling the page */
   overflow-anchor: none;
 }
@@ -647,7 +719,6 @@ button {
   cursor: pointer;
   display: block;
   min-width: 12em;
-  -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
@@ -658,17 +729,22 @@ button {
 }
 button.min {
   padding: 0.1em;
-  margin: 1%;
+  margin: 0px 2px 3px;
   min-width: 0;
-  width: auto;
   display: inline;
-  float: right;
+  border-radius: 5px;
 }
 button.min-block {
   padding: 0.1em;
   margin: auto;
   min-width: 0;
   vertical-align: super;
+  border-radius: 5px;
+}
+button.close-button {
+  padding: 0 3.5px;
+  margin: auto;
+  float: right;
 }
 button:hover {
   -webkit-box-shadow: 0px 0px 2px 2px var(--color-lighter);
@@ -720,17 +796,16 @@ button.disabled div {
   box-shadow: none;
   background-color: var(--color-darker);
 }
-.inputbox {
+#custom-input {
   padding: 0.1em;
-  margin: 1%;
+  margin: 0px 2px 3px;
   width: 6em;
-  float: right;
   background-color: var(--color-light);
   border-color: var(--color-lighter);
   color: white;
   font-size: 90%;
 }
-.inputbox[disabled] {
+#custom-input[disabled] {
   background-color: var(--color-darker);
   color: var(--color-lighter);
   filter: brightness(80%);
@@ -738,32 +813,9 @@ button.disabled div {
   border-color: var(--color-med);
 }
 .button-icon {
-  vertical-align: middle;
   background-color: var(--color-lighter);
-  -webkit-box-shadow: 0 0 3px 3px var(--color-lighter);
-  -moz-box-shadow: 0 0 3px 3px var(--color-lighter);
-  box-shadow: 0 0 3px 3px var(--color-lighter);
-  -webkit-border-radius: 5px;
-  -moz-border-radius: 5px;
-  border-radius: 5px;
-  pointer-events: none;
-}
-.button-icon-top {
-  vertical-align: middle;
-  background-color: var(--color-lighter);
-  -webkit-box-shadow: 0 0 3px 3px var(--color-lighter);
-  -moz-box-shadow: 0 0 3px 3px var(--color-lighter);
-  box-shadow: 0 0 3px 3px var(--color-lighter);
-  -webkit-border-radius: 5px;
-  -moz-border-radius: 5px;
-  border-radius: 5px;
-  pointer-events: none;
   display: block;
   margin: 0 auto 0.4em auto;
-}
-.button-icon-side {
-  vertical-align: middle;
-  background-color: var(--color-lighter);
   -webkit-box-shadow: 0 0 3px 3px var(--color-lighter);
   -moz-box-shadow: 0 0 3px 3px var(--color-lighter);
   box-shadow: 0 0 3px 3px var(--color-lighter);
@@ -771,8 +823,6 @@ button.disabled div {
   -moz-border-radius: 5px;
   border-radius: 5px;
   pointer-events: none;
-  display: inline-block;
-  margin: 0em 0.4em 0.4em 0.4em;
 }
 #tabSceneImage {
   display: block;
@@ -814,11 +864,12 @@ button.disabled div {
   -webkit-opacity: 0.5;
   -moz-opacity: 0.5;
   opacity: 0.5;
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   background-color: black;
   width: 100%;
+  height: 100%;
   z-index: 10;
 }
 .smallDesc {
@@ -839,6 +890,12 @@ button.disabled div {
   pointer-events: none;
 }
 .copyrightNotice {
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  pointer-events: none;
   font-size: 80%;
   color: var(--color-lighter);
   filter: brightness(130%);
@@ -855,7 +912,7 @@ button.disabled div {
   padding: 1em 2em;
   margin: auto;
   overflow: auto;
-  position: absolute;
+  position: fixed;
   top: 50%;
   left: 50%;
   -webkit-transform: translateX(-50%) translateY(-50%);
@@ -876,7 +933,6 @@ button.disabled div {
 }
 #pane #paneHeaderTitleDiv {
   vertical-align: middle;
-  float: left;
   display: inline;
   text-align: left;
 }
@@ -885,24 +941,15 @@ button.disabled div {
 }
 #pane #paneHeaderCloseButtonDiv {
   vertical-align: middle;
-  float: right;
-  display: inline;
   text-align: right;
-}
-#pane #paneHeaderCloseButtonDiv button {
-  display: inline;
-  width: auto;
-}
-#pane #paneHeaderCloseButton {
-  margin: auto;
-  float: none;
-  min-width: 0;
 }
 #pane table {
   margin: auto;
   text-align: left;
 }
 #pane .option-button {
+  padding-left: 0;
+  padding-right: 0;
   min-width: 0;
   width: 4em;
 }

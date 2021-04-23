@@ -71,16 +71,16 @@ SharkGame.Stats = {
             clear: "both",
         });
         // TODO NAME BUTTON BETTER
-        SharkGame.Button.makeButton("switchButton", "&nbsp Swap Producers and Produced &nbsp", switchButtonDiv, s.toggleSwitch).addClass("min-block");
+        SharkGame.Button.makeButton("switchButton", "Swap Producers and Produced", switchButtonDiv, s.toggleSwitch).addClass("min-block");
         if (SharkGame.Settings.current.grottoMode === "simple") {
-            SharkGame.Button.makeButton("modeButton", "&nbsp Swap to Advanced mode &nbsp", switchButtonDiv, s.toggleMode).addClass("min-block");
+            SharkGame.Button.makeButton("modeButton", "Swap to Advanced mode", switchButtonDiv, s.toggleMode).addClass("min-block");
         } else {
-            SharkGame.Button.makeButton("modeButton", "&nbsp Swap to Simple mode &nbsp", switchButtonDiv, s.toggleMode).addClass("min-block");
+            SharkGame.Button.makeButton("modeButton", "Swap to Simple mode", switchButtonDiv, s.toggleMode).addClass("min-block");
         }
         /*         if (SharkGame.Settings.current.incomeTotalMode === "absolute") {
-            SharkGame.Button.makeButton("percentButton", "&nbsp Show Income as Percentage &nbsp", switchButtonDiv, s.togglePercent).addClass("min-block");
+            SharkGame.Button.makeButton("percentButton", "Show Income as Percentage", switchButtonDiv, s.togglePercent).addClass("min-block");
         } else {
-            SharkGame.Button.makeButton("percentButton", "&nbsp Show Income as Number &nbsp", switchButtonDiv, s.togglePercent).addClass("min-block");
+            SharkGame.Button.makeButton("percentButton", "Show Income as Number", switchButtonDiv, s.togglePercent).addClass("min-block");
         } */
         incomeDataSel.append(switchButtonDiv);
 
@@ -129,11 +129,12 @@ SharkGame.Stats = {
 
     createDisposeButtons() {
         const buttonDiv = $("#disposeResource").addClass("disposeArrangement");
-        SharkGame.ResourceMap.forEach((v, k) => {
-            if (r.getTotalResource(k) > 0 && s.bannedDisposeCategories.indexOf(r.getCategoryOfResource(k)) === -1) {
+        SharkGame.ResourceMap.forEach((_v, someKindOfKey) => {
+            if (r.getTotalResource(someKindOfKey) > 0 && s.bannedDisposeCategories.indexOf(r.getCategoryOfResource(someKindOfKey)) === -1) {
                 SharkGame.Button.makeButton(
-                    "dispose-" + k,
-                    "Dispose of<br/>" + r.getResourceName(k, false, false, false, SharkGame.getElementColor("tooltipbox", "background-color")),
+                    "dispose-" + someKindOfKey,
+                    "Dispose of<br/>" +
+                        r.getResourceName(someKindOfKey, false, false, false, SharkGame.getElementColor("tooltipbox", "background-color")),
                     buttonDiv,
                     s.onDispose
                 );
@@ -142,10 +143,10 @@ SharkGame.Stats = {
     },
 
     updateDisposeButtons() {
-        SharkGame.ResourceMap.forEach((v, k) => {
-            if (r.getTotalResource(k) > 0 && s.bannedDisposeCategories.indexOf(r.getCategoryOfResource(k)) === -1) {
-                const button = $("#dispose-" + k);
-                const resourceAmount = r.getResource(k);
+        SharkGame.ResourceMap.forEach((_resource, resourceName) => {
+            if (r.getTotalResource(resourceName) > 0 && s.bannedDisposeCategories.indexOf(r.getCategoryOfResource(resourceName)) === -1) {
+                const button = $("#dispose-" + resourceName);
+                const resourceAmount = r.getResource(resourceName);
                 let amountToDispose = m.getBuyAmount();
                 if (amountToDispose < 0) {
                     const max = resourceAmount;
@@ -158,11 +159,23 @@ SharkGame.Stats = {
                     "Dispose of " +
                     m.beautify(amountToDispose) +
                     "<br/>" +
-                    r.getResourceName(k, disableButton, forceSingular, false, SharkGame.getElementColor("dispose-" + k, "background-color"));
+                    r.getResourceName(
+                        resourceName,
+                        disableButton,
+                        forceSingular,
+                        false,
+                        SharkGame.getElementColor("dispose-" + resourceName, "background-color")
+                    );
                 if (amountToDispose <= 0) {
                     label =
                         "Can't dispose any more " +
-                        r.getResourceName(k, disableButton, forceSingular, false, SharkGame.getElementColor("dispose-" + k, "background-color"));
+                        r.getResourceName(
+                            resourceName,
+                            disableButton,
+                            forceSingular,
+                            false,
+                            SharkGame.getElementColor("dispose-" + resourceName, "background-color")
+                        );
                 }
 
                 if (button.html() !== label.replace(/'/g, '"').replace("<br/>", "<br>")) {
@@ -202,35 +215,49 @@ SharkGame.Stats = {
     },
 
     updateIncomeTable() {
-        SharkGame.ResourceMap.forEach((v, k) => {
-            if (r.getTotalResource(k) > 0 && SharkGame.ResourceMap.get(k).income) {
-                const income = SharkGame.ResourceMap.get(k).income;
-                $.each(income, (incomeKey) => {
-                    const cell = $("#income-" + k + "-" + incomeKey);
-                    const realIncome = SharkGame.BreakdownIncomeTable.get(k)[incomeKey];
-                    const changeChar = !(realIncome < 0) ? "+" : "";
-                    const newValue =
-                        "<span style='color: " +
-                        r.TOTAL_INCOME_COLOR +
-                        "'>" +
-                        // (SharkGame.Settings.current.incomeTotalMode === "absolute" ? (changeChar + m.beautifyIncome(realIncome)).bold() : ((Math.min(realIncome/SharkGame.PlayerIncomeTable.get(incomeKey) * 100, 100)).toFixed(0) + "%")).bold() +
-                        (changeChar + m.beautifyIncome(realIncome)).bold() +
-                        "</span>";
-                    const oldValue = cell.html();
+        SharkGame.ResourceMap.forEach((_v, someKindOfKey) => {
+            if (r.getTotalResource(someKindOfKey) > 0) {
+                if (SharkGame.ResourceMap.get(someKindOfKey).income) {
+                    const income = SharkGame.ResourceMap.get(someKindOfKey).income;
+                    $.each(income, (incomeKey) => {
+                        let cell = $("#income-" + someKindOfKey + "-" + incomeKey);
+                        const realIncome = SharkGame.BreakdownIncomeTable.get(someKindOfKey)[incomeKey];
+                        const changeChar = !(realIncome < 0) ? "+" : "";
+                        let newValue =
+                            "<span style='color: " +
+                            r.TOTAL_INCOME_COLOR +
+                            "'>" +
+                            // (SharkGame.Settings.current.incomeTotalMode === "absolute" ? (changeChar + m.beautifyIncome(realIncome)).bold() : ((Math.min(realIncome/SharkGame.PlayerIncomeTable.get(incomeKey) * 100, 100)).toFixed(0) + "%")).bold() +
+                            (changeChar + m.beautifyIncome(realIncome)).bold() +
+                            "</span>";
+                        let oldValue = cell.html();
 
-                    if (oldValue !== newValue.replace(/'/g, '"')) {
-                        cell.html(newValue);
-                    }
-                });
+                        if (oldValue !== newValue.replace(/'/g, '"')) {
+                            cell.html(newValue);
+                        }
+
+                        if (SharkGame.Settings.current.switchStats) {
+                            cell = $("#table-amount-" + someKindOfKey + "-" + incomeKey);
+                        } else {
+                            cell = $("#table-amount-" + someKindOfKey);
+                        }
+
+                        newValue = "<div style='text-align:right'>" + m.beautify(r.getResource(someKindOfKey)).bold() + "</div>";
+                        oldValue = cell.html();
+                        if (oldValue !== newValue.replace(/'/g, '"')) {
+                            cell.html(newValue);
+                        }
+                    });
+                }
             }
         });
     },
 
     updateTotalAmountTable() {
-        SharkGame.ResourceMap.forEach((v, k) => {
-            const totalResource = r.getTotalResource(k);
+        SharkGame.ResourceMap.forEach((_v, someKindOfKey) => {
+            const totalResource = r.getTotalResource(someKindOfKey);
             if (totalResource > 0) {
-                const cell = $("#totalAmount-" + k);
+                const cell = $("#totalAmount-" + someKindOfKey);
                 const newValue = m.beautify(totalResource);
                 const oldValue = cell.html();
 
@@ -266,17 +293,21 @@ SharkGame.Stats = {
                 }
 
                 $.each(generatorData.income, (incomeKey, incomeValue) => {
-                    if (w.doesResourceExist(incomeKey) && r.getTotalResource(incomeKey) > 0 && incomeValue > 0) {
+                    if (w.doesResourceExist(incomeKey) && r.getTotalResource(incomeKey) > 0 && incomeValue !== 0) {
                         if (SharkGame.Settings.current.switchStats) {
                             // Switch it!
-                            if (!drawnResourceMap.has(incomeKey)) drawnResourceMap.set(incomeKey, { subheading: {} });
+                            if (!drawnResourceMap.has(incomeKey)) {
+                                drawnResourceMap.set(incomeKey, {});
+                            }
 
-                            drawnResourceMap.get(incomeKey).subheading[generatorName] = incomeValue;
+                            drawnResourceMap.get(incomeKey)[generatorName] = incomeValue;
                         } else {
-                            if (!drawnResourceMap.has(generatorName)) drawnResourceMap.set(generatorName, { subheading: {} });
+                            if (!drawnResourceMap.has(generatorName)) {
+                                drawnResourceMap.set(generatorName, {});
+                            }
 
                             // Copy all the good incomes over
-                            drawnResourceMap.get(generatorName).subheading[incomeKey] = incomeValue;
+                            drawnResourceMap.get(generatorName)[incomeKey] = incomeValue;
                         }
                     }
                 });
@@ -286,41 +317,38 @@ SharkGame.Stats = {
         // You would filter or sort here if you want to filter or sort using higher order operations
         // You would filter or sort above the statement where it's checked if the view is switched if you want to do an if statement
 
-        /*         incomesTable.append($("<tr>").append($("<td>").html("test").attr("rowspan", 1).addClass("evenRow"))
+        /*
+        incomesTable.append($("<tr>").append($("<td>").html("test").attr("rowspan", 1).addClass("evenRow"))
             .append($("<td>").html("test2").attr("rowspan", 1).addClass("evenRow"))
             .append($("<td>").html("test").attr("rowspan", 1).addClass("evenRow"))
-            .append($("<td>").html("test").attr("rowspan", 1).addClass("evenRow"))); */
-
-        let hasWorldColumn = false;
-        let hasArtifactColumn = false;
-        let hasAffectColumn = false;
+            .append($("<td>").html("test").attr("rowspan", 1).addClass("evenRow")));
+        */
 
         drawnResourceMap.forEach((headingData, headingName) => {
             // if the resource has an income requiring any costs
             // and it isn't a forced income
             // do not display the resource's income if it requires a non-existent resource (looking at you, sponge)
-            const subheading = headingData.subheading;
+            const subheadings = Object.keys(headingData).length;
 
-            const subheadings = Object.keys(subheading).length;
-
-            let row = $("<tr>");
+            let resourceMapRow = $("<tr>");
             let counter = 0;
-            let firstEntryinRow = true;
 
             const rowStyle = formatCounter % 2 === 0 ? "evenRow" : "oddRow";
 
             if (!SharkGame.Settings.current.switchStats) {
-                row.append(
+                resourceMapRow.append(
                     $("<td>")
+                        .attr("rowspan", subheadings)
                         .html("<div style='text-align:right'>" + m.beautify(r.getResource(headingName)).bold() + "</div>")
                         .addClass(rowStyle)
+                        .attr("id", "table-amount-" + headingName)
                 );
             }
-            row.append($("<td>").html(r.getResourceName(headingName)).attr("rowspan", subheadings).addClass(rowStyle));
+            resourceMapRow.append($("<td>").html(r.getResourceName(headingName)).attr("rowspan", subheadings).addClass(rowStyle));
 
             function addCell(text, rowspan, id) {
                 if (id) {
-                    row.append(
+                    resourceMapRow.append(
                         $("<td>")
                             .attr("rowspan", rowspan === "inline" ? 1 : subheadings)
                             .attr("id", id)
@@ -328,7 +356,7 @@ SharkGame.Stats = {
                             .addClass(rowStyle)
                     );
                 } else {
-                    row.append(
+                    resourceMapRow.append(
                         $("<td>")
                             .attr("rowspan", rowspan === "inline" ? 1 : subheadings)
                             .html(text ? `<span style='color:${text[0]}'>${text[1]}</span>` : undefined)
@@ -337,38 +365,33 @@ SharkGame.Stats = {
                 }
             }
 
-            $.each(subheading, (subheadingKey, subheadingValue) => {
+            $.each(headingData, (subheadingKey, subheadingValue) => {
                 // the income was formerly the subheadingKey, but then it got changed so it could be flipped
 
                 const incomeKey = SharkGame.Settings.current.switchStats ? headingName : subheadingKey;
                 const generatorName = SharkGame.Settings.current.switchStats ? subheadingKey : headingName;
                 const incomeValue = subheadingValue;
 
-                const resourceBoostRowspan = SharkGame.Settings.current.switchStats ? undefined : "inline";
                 const generatorBoostRowspan = SharkGame.Settings.current.switchStats ? "inline" : undefined;
                 const realIncome = SharkGame.BreakdownIncomeTable.get(generatorName)[incomeKey];
                 const changeChar = !(realIncome < 0) ? "+" : "";
 
                 if (SharkGame.Settings.current.switchStats) {
-                    row.append(
+                    resourceMapRow.append(
                         $("<td>")
                             .html("<div style='text-align:right'>" + m.beautify(r.getResource(subheadingKey)).bold() + "</div>")
                             .addClass(rowStyle)
-                    );
-                } else if (!firstEntryinRow) {
-                    row.append(
-                        $("<td>")
-                            .html("<div style='text-align:right'>" + m.beautify(r.getResource(headingName)).bold() + "</div>")
-                            .addClass(rowStyle)
+                            .attr("id", "table-amount-" + generatorName + "-" + incomeKey)
                     );
                 }
-                row.append($("<td>").html(r.getResourceName(subheadingKey)).addClass(rowStyle));
+                resourceMapRow.append($("<td>").html(r.getResourceName(subheadingKey)).addClass(rowStyle));
 
                 // which mode are we in?
                 if (SharkGame.Settings.current.grottoMode === "advanced") {
                     addCell(
                         [r.INCOME_COLOR, changeChar + m.beautify(SharkGame.ResourceMap.get(generatorName).baseIncome[incomeKey], false, 2) + "/s"],
-                        "inline"
+                        "inline",
+                        "advanced-base-income-" + generatorName + "-" + incomeKey
                     );
                     // if its inline then many rowspans will fill the gap
 
@@ -383,25 +406,30 @@ SharkGame.Stats = {
                         const worldMultiplier = r.getMultiplierProduct("world", generatorName, incomeKey);
                         if (worldMultiplier !== 1) {
                             addCell([r.WORLD_MULTIPLIER_COLOR, "x" + m.beautify(worldMultiplier)], generatorBoostRowspan);
-                            hasWorldColumn = true;
                         } else addCell(undefined, generatorBoostRowspan);
 
                         // does this income get an artifact multiplier?
                         const artifactMultiplier = r.getMultiplierProduct("artifact", generatorName, incomeKey);
                         if (artifactMultiplier !== 1) {
                             addCell([r.ARTIFACT_MULTIPLIER_COLOR, "x" + m.beautify(artifactMultiplier)], generatorBoostRowspan);
-                            hasArtifactColumn = true;
                         } else addCell(undefined, generatorBoostRowspan);
 
                         // does this income get an effect network multiplier?
-                        const resourceAffectMultiplier = r.getNetworkIncomeModifier("generator", generatorName);
+                        const resourceAffectMultiplier =
+                            r.getNetworkIncomeModifier("generator", generatorName) * r.getNetworkIncomeModifier("resource", incomeKey);
                         if (resourceAffectMultiplier !== 1) {
-                            addCell([r.RESOURCE_AFFECT_MULTIPLIER_COLOR, "x" + m.beautify(resourceAffectMultiplier)], generatorBoostRowspan);
-                            hasAffectColumn = true;
+                            addCell(
+                                [r.RESOURCE_AFFECT_MULTIPLIER_COLOR, "x" + m.beautify(resourceAffectMultiplier, false, 2)],
+                                generatorBoostRowspan
+                            );
                         } else addCell(undefined, generatorBoostRowspan);
                     }
                 } else {
-                    addCell([r.INCOME_COLOR, changeChar + m.beautify(incomeValue, false, 2) + "/s"], "inline");
+                    addCell(
+                        [r.INCOME_COLOR, changeChar + m.beautify(incomeValue, false, 2) + "/s"],
+                        "inline",
+                        "base-income-" + generatorName + "-" + incomeKey
+                    );
                 }
 
                 // grotto is currently missing functionality to display resource effect (not affect) multipliers, needs to be added, but not pertinent since no resources currently use this multiplier type
@@ -426,13 +454,12 @@ SharkGame.Stats = {
                 }
 
                 counter++;
-                incomesTable.append(row);
-                row = $("<tr>");
-                firstEntryinRow = false;
+                incomesTable.append(resourceMapRow);
+                resourceMapRow = $("<tr>");
             });
 
             // throw away dangling values
-            row = null;
+            resourceMapRow = null;
             formatCounter++;
         });
 
@@ -445,35 +472,41 @@ SharkGame.Stats = {
 
         let columns = incomesTable[0].children[0].children[0].children.length;
 
-        if (!SharkGame.Settings.current.switchStats) {
+        if (SharkGame.Settings.current.switchStats) {
             row.append(
-                $("<td>")
-                    .html("<span><u>" + "AMOUNT".bold() + "</u></span>")
+                $("<th>")
+                    .html("<span><u>" + "RESOURCE".bold() + "</u></span>")
                     .addClass("evenRow")
             );
             row.append(
+                $("<th>")
+                    .html("<span><u>" + "AMOUNT".bold() + "</u></span>")
+                    .addClass("evenRow")
+            );
+
+            row.append(
                 $("<td>")
-                    .html("<span><u>" + (SharkGame.Settings.current.switchStats ? "RESOURCE" : "GENERATOR").bold() + "</u></span>")
+                    .html("<span><u>" + "GENERATOR".bold() + "</u></span>")
                     .addClass("evenRow")
             );
         } else {
             row.append(
-                $("<td>")
-                    .html("<span><u>" + (SharkGame.Settings.current.switchStats ? "RESOURCE" : "GENERATOR").bold() + "</u></span>")
-                    .addClass("evenRow")
-            );
-            row.append(
-                $("<td>")
+                $("<th>")
                     .html("<span><u>" + "AMOUNT".bold() + "</u></span>")
                     .addClass("evenRow")
             );
-        }
+            row.append(
+                $("<th>")
+                    .html("<span><u>" + "GENERATOR".bold() + "</u></span>")
+                    .addClass("evenRow")
+            );
 
-        row.append(
-            $("<td>")
-                .html("<span><u>" + (SharkGame.Settings.current.switchStats ? "GENERATOR" : "RESOURCE").bold() + "</u></span>")
-                .addClass("evenRow")
-        );
+            row.append(
+                $("<td>")
+                    .html("<span><u>" + "RESOURCE".bold() + "</u></span>")
+                    .addClass("evenRow")
+            );
+        }
 
         row.append(
             $("<td>")
@@ -502,15 +535,15 @@ SharkGame.Stats = {
             totalAmountTable.empty();
         }
 
-        SharkGame.ResourceMap.forEach((v, key) => {
-            if (r.getTotalResource(key) > 0) {
+        SharkGame.ResourceMap.forEach((_resource, resourceId) => {
+            if (r.getTotalResource(resourceId) > 0) {
                 const row = $("<tr>");
 
-                row.append($("<td>").html(r.getResourceName(key)));
+                row.append($("<td>").html(r.getResourceName(resourceId)));
                 row.append(
                     $("<td>")
-                        .html(m.beautify(r.getTotalResource(key)))
-                        .attr("id", "totalAmount-" + key)
+                        .html(m.beautify(r.getTotalResource(resourceId)))
+                        .attr("id", "totalAmount-" + resourceId)
                 );
 
                 totalAmountTable.append(row);
@@ -522,48 +555,38 @@ SharkGame.Stats = {
 
     toggleSwitch() {
         SharkGame.Settings.current.switchStats = !SharkGame.Settings.current.switchStats;
-        // s.createIncomeTable();
         SharkGame.Stats.createIncomeTable();
     },
 
     toggleMode() {
         if (SharkGame.Settings.current.grottoMode === "simple") {
             SharkGame.Settings.current.grottoMode = "advanced";
-            document.getElementById("modeButton").innerHTML = "&nbsp Swap to Simple mode &nbsp";
+            document.getElementById("modeButton").innerHTML = "Swap to Simple mode";
         } else {
             SharkGame.Settings.current.grottoMode = "simple";
-            document.getElementById("modeButton").innerHTML = "&nbsp Swap to Advanced mode &nbsp";
+            document.getElementById("modeButton").innerHTML = "Swap to Advanced mode";
         }
         s.updateTableKey();
         s.createIncomeTable();
     },
 
-    /*     togglePercent() {
-        if (SharkGame.Settings.current.incomeTotalMode === "absolute") {
-            SharkGame.Settings.current.incomeTotalMode = "percent";
-            document.getElementById("percentButton").innerHTML = "&nbsp Show Income as Number &nbsp";
-        } else {
-            SharkGame.Settings.current.incomeTotalMode = "absolute";
-            document.getElementById("percentButton").innerHTML = "&nbsp Show Income as Percentage &nbsp";
-        }
-    }, */
-
     updateTableKey() {
-        let key = "";
-        if (SharkGame.Settings.current.grottoMode === "advanced") {
-            if (w.worldType !== "start") {
-                key =
-                    "<br> <b><u>TABLE KEY</b></u>" +
-                    `<br> <span style='color:${r.UPGRADE_MULTIPLIER_COLOR}'><b>This color</b></span> is for upgrade effects.` +
-                    `<br> <span style='color:${r.WORLD_MULTIPLIER_COLOR}'><b>This color</b></span> is for world effects.` +
-                    `<br> <span style='color:${r.RESOURCE_AFFECT_MULTIPLIER_COLOR}'><b>This color</b></span> is for how some resources affect eachother.` +
-                    `<br> <span style='color:${r.ARTIFACT_MULTIPLIER_COLOR}'><b>This color</b></span> is for artifact effects.`;
-            } else {
-                key =
-                    "<br> <b><u>TABLE KEY</b></u>" +
-                    `<br> <span style='color:${r.UPGRADE_MULTIPLIER_COLOR}'><b>This color</b></span> is for upgrade effects.`;
-            }
+        if (SharkGame.Settings.current.grottoMode !== "advanced") {
+            document.getElementById("tableKey").innerHTML = "";
+            return;
         }
-        document.getElementById("tableKey").innerHTML = key;
+
+        if (w.worldType !== "start") {
+            document.getElementById("tableKey").innerHTML =
+                "<br> <b><u>TABLE KEY</b></u>" +
+                `<br> <span style='color:${r.UPGRADE_MULTIPLIER_COLOR}'><b>This color</b></span> is for upgrade effects.` +
+                `<br> <span style='color:${r.WORLD_MULTIPLIER_COLOR}'><b>This color</b></span> is for world effects.` +
+                `<br> <span style='color:${r.RESOURCE_AFFECT_MULTIPLIER_COLOR}'><b>This color</b></span> is for how some resources affect each other.` +
+                `<br> <span style='color:${r.ARTIFACT_MULTIPLIER_COLOR}'><b>This color</b></span> is for artifact effects.`;
+        } else {
+            document.getElementById("tableKey").innerHTML =
+                "<br> <b><u>TABLE KEY</b></u>" +
+                `<br> <span style='color:${r.UPGRADE_MULTIPLIER_COLOR}'><b>This color</b></span> is for upgrade effects.`;
+        }
     },
 };

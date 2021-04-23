@@ -231,7 +231,7 @@ SharkGame.Sprites = {
             h: 200,
         },
     },
-    chorus: {
+    "haven-song": {
         frame: {
             x: 1214,
             y: 410,
@@ -251,10 +251,30 @@ SharkGame.Sprites = {
             h: 200,
         },
     },
-    "dolphin-one": {
+    "haven-dolphin-empire": {
         frame: {
             x: 2,
             y: 614,
+            w: 400,
+            h: 200,
+        },
+        rotated: false,
+        trimmed: false,
+        spriteSourceSize: {
+            x: 0,
+            y: 0,
+            w: 400,
+            h: 200,
+        },
+        sourceSize: {
+            w: 400,
+            h: 200,
+        },
+    },
+    "haven-dolphin-observes": {
+        frame: {
+            x: 1618,
+            y: 1226,
             w: 400,
             h: 200,
         },
@@ -375,6 +395,26 @@ SharkGame.Sprites = {
         frame: {
             x: 810,
             y: 818,
+            w: 400,
+            h: 200,
+        },
+        rotated: false,
+        trimmed: false,
+        spriteSourceSize: {
+            x: 0,
+            y: 0,
+            w: 400,
+            h: 200,
+        },
+        sourceSize: {
+            w: 400,
+            h: 200,
+        },
+    },
+    "haven-stories": {
+        frame: {
+            x: 1618,
+            y: 1430,
             w: 400,
             h: 200,
         },
@@ -831,7 +871,7 @@ SharkGame.Sprites = {
             h: 200,
         },
     },
-    "whale-one": {
+    "haven-whales": {
         frame: {
             x: 1618,
             y: 1022,
@@ -1444,6 +1484,14 @@ SharkGame.Sprites = {
         sourceSize: { w: 50, h: 50 },
         pivot: { x: 0, y: 0 },
     },
+    "technologies/delphineHistory": {
+        frame: { x: 2168, y: 0, w: 50, h: 50 },
+        rotated: false,
+        trimmed: false,
+        spriteSourceSize: { x: 0, y: 0, w: 50, h: 50 },
+        sourceSize: { w: 50, h: 50 },
+        pivot: { x: 0, y: 0 },
+    },
     "technologies/eelHabitats": {
         frame: { x: 1968, y: 50, w: 50, h: 50 },
         rotated: false,
@@ -1454,6 +1502,14 @@ SharkGame.Sprites = {
     },
     "technologies/engineering": {
         frame: { x: 1406, y: 106, w: 50, h: 50 },
+        rotated: false,
+        trimmed: false,
+        spriteSourceSize: { x: 0, y: 0, w: 50, h: 50 },
+        sourceSize: { w: 50, h: 50 },
+        pivot: { x: 0, y: 0 },
+    },
+    "technologies/eternalSong": {
+        frame: { x: 2168, y: 50, w: 50, h: 50 },
         rotated: false,
         trimmed: false,
         spriteSourceSize: { x: 0, y: 0, w: 50, h: 50 },
@@ -1477,6 +1533,23 @@ SharkGame.Sprites = {
         pivot: { x: 0, y: 0 },
     },
     "technologies/farExploration": {
+        frame: { x: 1492, y: 2, w: 50, h: 50 },
+        rotated: false,
+        trimmed: false,
+        spriteSourceSize: { x: 0, y: 0, w: 50, h: 50 },
+        sourceSize: { w: 50, h: 50 },
+        pivot: { x: 0, y: 0 },
+    },
+    // placeholder for farexploration on haven and abandoned
+    "technologies/farHavenExploration": {
+        frame: { x: 1492, y: 2, w: 50, h: 50 },
+        rotated: false,
+        trimmed: false,
+        spriteSourceSize: { x: 0, y: 0, w: 50, h: 50 },
+        sourceSize: { w: 50, h: 50 },
+        pivot: { x: 0, y: 0 },
+    },
+    "technologies/farAbandonedExploration": {
         frame: { x: 1492, y: 2, w: 50, h: 50 },
         rotated: false,
         trimmed: false,

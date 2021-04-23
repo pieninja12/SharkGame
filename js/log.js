@@ -5,29 +5,26 @@ SharkGame.Log = {
     init() {
         const l = SharkGame.Log;
         // create log
-        $("#log").append("<button id='clearLog' class='min'></button><h3>Log<h3/><ul id='messageList'></ul>");
+        $("#log").append("<h3>Log<h3/><button id='clearLog' class='min close-button'>✕</button><ul id='messageList'></ul>");
         // add clear button
-        SharkGame.Button.replaceButton("clearLog", "&nbsp x &nbsp", l.clearMessages);
+        $("#clearLog").on("click", l.clearMessages);
         l.initialised = true;
     },
 
     addMessage(message) {
-        const l = SharkGame.Log;
-        const s = SharkGame.Settings.current;
-        const showAnims = s.showAnimations;
+        const log = SharkGame.Log;
+        const showAnims = SharkGame.Settings.current.showAnimations;
 
-        if (!l.initialised) {
-            l.init();
+        if (!log.initialised) {
+            log.init();
         }
-        const messageList = $("#messageList");
-
         const messageItem = $("<li>").html(message);
         if (showAnims) {
             messageItem.hide().css("opacity", 0).prependTo("#messageList").slideDown(50).animate({ opacity: 1.0 }, 100);
         } else {
             messageItem.prependTo("#messageList");
         }
-        l.messages.push(messageItem);
+        log.messages.push(messageItem);
 
         SharkGame.Log.correctLogLength();
 
@@ -35,15 +32,17 @@ SharkGame.Log = {
     },
 
     addError(message) {
-        const l = SharkGame.Log;
-        const messageItem = l.addMessage("Error: " + message);
+        if (message instanceof Error) {
+            console.error(message);
+            message = message.message;
+        }
+        const messageItem = SharkGame.Log.addMessage("Error: " + message);
         messageItem.addClass("error");
         return messageItem;
     },
 
     addDiscovery(message) {
-        const l = SharkGame.Log;
-        const messageItem = l.addMessage(message);
+        const messageItem = SharkGame.Log.addMessage(message);
         messageItem.addClass("discovery");
         return messageItem;
     },
@@ -71,14 +70,14 @@ SharkGame.Log = {
         }
     },
 
-    clearMessages() {
-        const l = SharkGame.Log;
+    clearMessages(log = true) {
         // remove each element from page
-        $.each(l.messages, (_, v) => {
-            v.remove();
+        _.each(SharkGame.Log.messages, (message) => {
+            message.remove();
         });
         // wipe array
-        l.messages = [];
+        SharkGame.Log.messages = [];
+        if (log) SharkGame.Log.addMessage("Log cleared.");
     },
 
     haveAnyMessages() {

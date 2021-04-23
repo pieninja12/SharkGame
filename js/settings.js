@@ -28,19 +28,37 @@ SharkGame.Settings = {
     framerate: {
         defaultSetting: 20,
         name: "Framerate/TPS",
-        desc: "Lower the TPS to save power or increase performance. Set higher to get a smoother game. Defaults to 10.",
+        desc: "Which rate to update the game at. Lower saves power and might improve performance. Higher looks smoother.",
         show: true,
+        category: "PERFORMANCE",
         options: [1, 2, 5, 10, 20, 30],
         onChange() {
             m.applyFramerate();
         },
     },
 
+    minimizedTopbar: {
+        defaultSetting: true,
+        name: "Minimized Title Bar",
+        desc: "Whether to minimize the title bar at the top of the game.",
+        show: true,
+        category: "LAYOUT",
+        options: [true, false],
+        onChange() {
+            if (SharkGame.Settings.current["minimizedTopbar"]) {
+                document.querySelector("body").classList.add("top-bar");
+            } else {
+                document.querySelector("body").classList.remove("top-bar");
+            }
+        },
+    },
+
     groupResources: {
         defaultSetting: true,
         name: "Group Resources",
-        desc: "Group resources in the table into categories for legibility.",
+        desc: "Whether to group resources in the table into categories.",
         show: true,
+        category: "LAYOUT",
         options: [true, false],
         onChange() {
             r.rebuildTable = true;
@@ -52,17 +70,135 @@ SharkGame.Settings = {
         name: "Home Sea Button Display",
         desc: "Do you want a vertical list of buttons, or a more space-saving configuration?",
         show: true,
+        category: "LAYOUT",
         options: ["list", "pile"],
         onChange() {
             m.changeTab(SharkGame.Tabs.current);
         },
     },
 
+    logMessageMax: {
+        defaultSetting: 15,
+        name: "Max Log Messages",
+        desc: "How many messages to show before removing old ones.",
+        show: true,
+        category: "LAYOUT",
+        options: [5, 10, 15, 20, 30],
+        onChange() {
+            SharkGame.Log.correctLogLength();
+        },
+    },
+
+    sidebarWidth: {
+        defaultSetting: "25%",
+        name: "Sidebar Width",
+        desc: "How much screen space the sidebar should take.",
+        show: true,
+        category: "LAYOUT",
+        options: ["25%", "30%", "35%"],
+        onChange() {
+            const sidebar = $("#sidebar");
+            if (SharkGame.Settings.current.showAnimations) {
+                sidebar.animate({ width: SharkGame.Settings.current.sidebarWidth }, 100);
+            } else {
+                sidebar.width(SharkGame.Settings.current.sidebarWidth);
+            }
+        },
+    },
+
+    showAnimations: {
+        defaultSetting: true,
+        name: "Show Animations",
+        desc: "Whether to show animated transitions for some things.",
+        show: true,
+        category: "PERFORMANCE",
+        options: [true, false],
+    },
+
+    colorCosts: {
+        defaultSetting: true,
+        name: "Color Resource Names",
+        desc: "Whether to color names of resources.",
+        show: true,
+        category: "APPEARANCE",
+        options: [true, false],
+        onChange() {
+            r.rebuildTable = true;
+            s.recreateIncomeTable = true;
+        },
+    },
+
+    boldCosts: {
+        defaultSetting: true,
+        name: "Bold Resource Names",
+        desc: "Whether to embolden names of resources.",
+        show: true,
+        options: [true, false],
+        category: "APPEARANCE",
+        onChange() {
+            r.rebuildTable = true;
+            s.recreateIncomeTable = true;
+        },
+    },
+
+    enableThemes: {
+        defaultSetting: true,
+        name: "Enable Planet-dependent Styles",
+        desc: "Whether to use a different color scheme dependent on which planet you're currently on.",
+        show: true,
+        options: [true, false],
+        category: "APPEARANCE",
+        onChange() {
+            if (SharkGame.Settings.current["enableThemes"]) {
+                document.querySelector("body").classList.remove("no-theme");
+            } else {
+                document.querySelector("body").classList.add("no-theme");
+            }
+        },
+    },
+
+    showIcons: {
+        defaultSetting: true,
+        name: "Show Action Button icons",
+        desc: "Whether to show icons/drawings above action buttons.",
+        show: true,
+        category: "APPEARANCE",
+        options: [true, false],
+    },
+
+    showTabImages: {
+        defaultSetting: true,
+        name: "Show Tab Header Images",
+        desc: "Whether to show the art of the current tab.",
+        show: true,
+        category: "APPEARANCE",
+        options: [true, false],
+        onChange() {
+            m.changeTab(SharkGame.Tabs.current);
+        },
+    },
+
+    updateCheck: {
+        defaultSetting: true,
+        name: "Check for updates",
+        desc: "Whether to show a notification when a new update becomes available. (Checked every 5 minutes)",
+        show: true,
+        category: "OTHER",
+        options: [true, false],
+        onChange() {
+            clearInterval(SharkGame.Main.checkForUpdateHandler);
+            if (SharkGame.Settings.current.updateCheck) {
+                SharkGame.Main.checkForUpdateHandler = setInterval(m.checkForUpdates, 300000);
+            }
+        },
+    },
+
     offlineModeActive: {
         defaultSetting: true,
         name: "Offline Mode",
-        desc: "Let your numbers increase even with the game closed!",
+        desc: "Whether to calculate income gained while not playing.",
         show: true,
+        category: "OTHER",
         options: [true, false],
     },
 
@@ -72,6 +208,7 @@ SharkGame.Settings = {
         name: "Autosave Frequency",
         desc: "Number of minutes between autosaves.",
         show: true,
+        category: "SAVES",
         options: [1, 2, 5, 10, 30],
         onChange() {
             clearInterval(m.autosaveHandler);
@@ -83,115 +220,6 @@ SharkGame.Settings = {
                     SharkGame.plural(SharkGame.Settings.current.autosaveFrequency) +
                     "."
             );
-        },
-    },
-
-    updateCheck: {
-        // times given in minutes
-        defaultSetting: true,
-        name: "Check for updates",
-        desc: "Do you want it to give you a warning when there's a new update?",
-        show: true,
-        options: [true, false],
-        onChange() {
-            clearInterval(SharkGame.Main.checkForUpdateHandler);
-            if (SharkGame.Settings.current.updateCheck) {
-                SharkGame.Main.checkForUpdateHandler = setInterval(m.checkForUpdates, 300000);
-            }
-        },
-    },
-
-    logMessageMax: {
-        defaultSetting: 15,
-        name: "Max Log Messages",
-        desc: "How many messages to show before removing old ones.",
-        show: true,
-        options: [5, 10, 15, 20, 25, 30, 50],
-        onChange() {
-            SharkGame.Log.correctLogLength();
-        },
-    },
-
-    sidebarWidth: {
-        defaultSetting: "25%",
-        name: "Sidebar Width",
-        desc: "How much screen estate the sidebar should take.",
-        show: true,
-        options: ["25%", "30%", "35%", "40%", "45%", "50%"],
-        onChange() {
-            const sidebar = $("#sidebar");
-            if (SharkGame.Settings.current.showAnimations) {
-                sidebar.animate({ width: SharkGame.Settings.current.sidebarWidth }, "100");
-                SharkGame.Log.correctLogLength();
-            } else {
-                sidebar.width(SharkGame.Settings.current.sidebarWidth);
-            }
-        },
-    },
-
-    showAnimations: {
-        defaultSetting: true,
-        name: "Show Animations",
-        desc: "Show animations or don't. YOU DECIDE.",
-        show: true,
-        options: [true, false],
-    },
-
-    colorCosts: {
-        defaultSetting: true,
-        name: "Color Resource Names",
-        desc: "Color names of resources.",
-        show: true,
-        options: [true, false],
-        onChange() {
-            r.rebuildTable = true;
-            s.recreateIncomeTable = true;
-        },
-    },
-
-    boldCosts: {
-        defaultSetting: true,
-        name: "Bold Resource Names",
-        desc: "Bold names of resources.",
-        show: true,
-        options: [true, false],
-        onChange() {
-            r.rebuildTable = true;
-            s.recreateIncomeTable = true;
-        },
-    },
-
-    enableThemes: {
-        defaultSetting: true,
-        name: "Enable Planet-dependent Styles",
-        desc: "Makes your game look like the planet you're on.",
-        show: true,
-        options: [true, false],
-        onChange() {
-            if (SharkGame.Settings.current["enableThemes"]) {
-                document.querySelector("body").classList.remove("no-theme");
-            } else {
-                document.querySelector("body").classList.add("no-theme");
-            }
-        },
-    },
-
-    iconPositions: {
-        defaultSetting: "top",
-        name: "Icon Positions",
-        desc: "Where should icons go on the buttons?",
-        show: true,
-        options: ["top", "side", "off"],
-    },
-
-    showTabImages: {
-        defaultSetting: true,
-        name: "Show Tab Header Images",
-        desc: "Do you want the new header images or are they taking up precious screen real-estate?",
-        show: true,
-        options: [true, false],
-        onChange() {
-            m.changeTab(SharkGame.Tabs.current);
         },
     },
 };

@@ -25,13 +25,14 @@
         "mt": "readonly",
         "cad": "readonly"
     },
-    "ignorePatterns": ["js/lib/**", "js/fallback/**", "js/reference/**", "js/menu/**"],
+    "ignorePatterns": ["js/lib/**"],
     "rules": {
         "no-unused-vars": [
             "error",
             {
-                "varsIgnorePattern": "(?:^__.{1,})|(?:[^$_]$)",
-                "argsIgnorePattern": "(?:^_.{1,})|(?:^.$)"
+                "varsIgnorePattern": "^__.+$",
+                "argsIgnorePattern": "^_.+$",
+                "args": "all"
             }
         ],
         "func-names": ["error", "always"],
@@ -39,7 +40,7 @@
         "no-inner-declarations": "off",
         "prefer-const": "error",
         "no-var": "error",
-        "no-shadow": "error",
+        "no-shadow": ["error", { "builtinGlobals": true, "hoist": "all", "allow": ["name", "event"] }],
         "eqeqeq": ["error", "smart"]
     }
 }

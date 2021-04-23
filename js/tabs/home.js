@@ -13,62 +13,62 @@ SharkGame.Home = {
         start: [
             {
                 name: "start-you-are-a-shark",
-                message: "&nbsp<br>&nbsp",
+                message: "",
             },
             {
                 name: "start-shark",
                 unlock: { resource: { fish: 5 } },
-                message: "You attract the attention of a shark. Maybe they can help you catch fish!<br>&nbsp",
+                message: "You attract the attention of a shark. Maybe they can help you catch fish!",
             },
             {
                 name: "start-sharks",
                 unlock: { resource: { shark: 1 } },
-                message: "More sharks swim over, curious and watchful.<br>&nbsp",
+                message: "More sharks swim over, curious and watchful.",
             },
             {
                 name: "start-ray",
                 unlock: { resource: { fish: 15 } },
-                message: "Some rays drift over.<br>&nbsp",
+                message: "Some rays drift over.",
             },
             {
                 name: "start-quite-the-group",
                 unlock: { resource: { shark: 1, ray: 1 } },
-                message: "You have quite the group going now.<br>&nbsp",
+                message: "You have quite the group going now.",
             },
             {
                 name: "start-crab",
                 unlock: { resource: { shark: 4, ray: 4 } },
-                message: "Some curious crabs come over.<br>&nbsp",
+                message: "Some curious crabs come over.",
             },
             {
                 name: "start-tribe",
                 unlock: { resource: { shark: 1, ray: 1, crab: 1 } },
-                message: "Your new tribe is at your command!<br>&nbsp",
+                message: "Your new tribe is at your command!",
             },
             {
                 name: "start-crystals",
                 unlock: { resource: { shark: 1, crystal: 10 } },
-                message: "The crystals are shiny. Some sharks stare at them curiously.<br>&nbsp",
+                message: "The crystals are shiny. Some sharks stare at them curiously.",
             },
             {
                 name: "start-science",
                 unlock: { resource: { scientist: 1 } },
-                message: "The science sharks swim in their own school.<br>&nbsp",
+                message: "The science sharks swim in their own school.",
             },
             {
                 name: "start-discoveries",
                 unlock: { upgrade: ["crystalContainer"] },
-                message: "More discoveries are needed.<br>&nbsp",
+                message: "More discoveries are needed.",
             },
             {
                 name: "start-nurse",
                 unlock: { resource: { nurse: 1 } },
-                message: "The shark community grows with time.<br>&nbsp",
+                message: "The shark community grows with time.",
             },
             {
                 name: "start-exploration",
                 unlock: { upgrade: ["exploration"] },
-                message: "You hear faint songs and cries in the distance.<br>&nbsp",
+                message: "You hear faint songs and cries in the distance.",
             },
             {
                 name: "start-machines",
@@ -83,7 +83,7 @@ SharkGame.Home = {
             {
                 name: "start-gate",
                 unlock: { upgrade: ["gateDiscovery"] },
-                message: "The gate beckons. The secret must be unlocked.<br>&nbsp",
+                message: "The gate beckons. The secret must be unlocked.",
             },
         ],
 
@@ -91,8 +91,7 @@ SharkGame.Home = {
         marine: [
             {
                 name: "marine-default",
-                unlock: { world: "marine" },
-                message: "The fish never run dry here. This place feels so familiar.<br>&nbsp",
+                message: "The fish never run dry here. This place feels so familiar.",
             },
             {
                 name: "lobster-one",
@@ -104,56 +103,54 @@ SharkGame.Home = {
         haven: [
             {
                 name: "haven-default",
-                unlock: { world: "haven" },
-                message: "The oceans are rich with life. But it's still not home.<br>&nbsp",
+                message: "The oceans are rich with life. But it's still not home.",
             },
             {
                 name: "haven-dolphin-observes",
-                unlock: { upgrade: ["crystalContainer"] },
-                message: "A...thing observes us from afar. What the heck is that??",
+                unlock: { totalResource: { coral: 75 } },
+                message: "A... thing observes us from afar. What the heck is that??",
             },
             {
                 name: "haven-dolphins",
-                unlock: { resource: { dolphin: 1 }, homeAction: ["getDolphin"] },
-                message: "A dolphin joins the frenzy.<br/>And it already wants a raise. Wow.",
+                unlock: { totalResource: { dolphin: 1 }, homeAction: ["getDolphin"] },
+                message: "A dolphin joins the frenzy.<br/>It already wants a raise. Wow.",
             },
             {
                 name: "haven-dolphin-empire",
-                unlock: { resource: { dolphin: 15 } },
+                unlock: { totalResource: { dolphin: 20 } },
                 message:
                     "The dolphin pods that work with us speak of an star-spanning empire of their kind.<br>They ask where our empire is. And they smile.",
             },
             {
-                name: "haven-gate",
-                unlock: { upgrade: ["delphinePhilosophy"] },
-                message:
-                    "Many of the dolphins' self-indulgent tales are filled with references to a mysterious object.<br/>The dolphins do not know what it is, but they know where to find it.<br/>They show us to a strange, featureless gate.",
+                name: "haven-papyrus",
+                unlock: { upgrade: ["sunObservation"] },
+                message: "Pieces of strange, crunchy kelp have begun washing up in the currents.<br/>Something is carved into them.",
             },
             {
-                name: "haven-machines",
-                unlock: { upgrade: ["dolphinTechnology"] },
+                name: "haven-stories",
+                unlock: { upgrade: ["delphineHistory"] },
                 message:
-                    "The intricate design of these machines disguises their innate simplicity.<br/>...yet they cannot perform maintenance without completely disassembling them. Why?",
+                    "The dolphin's self-indulgent tales make frequent references to a mystical gate.<br>And, they don't know where it is. Of course they don't.",
             },
             {
-                name: "whale-one",
-                unlock: { resource: { whale: 1 }, homeAction: ["getWhale"] },
+                name: "haven-whales",
+                unlock: { totalResource: { whale: 1 }, homeAction: ["getWhale"] },
                 message: "The whales speak rarely to us, working in silence as they sing to the ocean.<br>What do they sing for?",
             },
             {
                 name: "haven-history",
-                unlock: { upgrade: ["delphineHistory"] },
+                unlock: { upgrade: ["retroactiveRecordkeeping"] },
                 message:
-                    "The grand sum of all dolphin knowledge is laid out before us -<br/> and it is pitifully small. The original sum of dolphin knowledge has been lost to time, but this will have to do.",
+                    "The grand sum of all dolphin knowledge is laid out before us -<br/> and it is pitifully small. The original collections have been lost to time.",
             },
             {
-                name: "haven-chorus",
-                unlock: { upgrade: ["eternalSong"] },
-                message: "The whale song fills you with the same feeling as the gates. But so much smaller.<br>&nbsp",
+                name: "haven-song",
+                unlock: { upgrade: ["whaleSong"] },
+                message: "The whale song fills you with the same feeling as the gates. But so much smaller.",
             },
             {
                 name: "haven-done",
-                unlock: { upgrade: { chorus: 1 } },
+                unlock: { resource: { chorus: 1 } },
                 message: "The great song booms across the open water, carrying itself to all corners of the ocean.<br/>The gate reacts.",
             },
         ],
@@ -161,15 +158,13 @@ SharkGame.Home = {
         tempestuous: [
             {
                 name: "tempestuous-default",
-                unlock: { world: "tempestuous" },
-                message: "The storm never ends, and many are lost to its violent throes.<br>&nbsp",
+                message: "The storm never ends, and many are lost to its violent throes.",
             },
         ],
 
         violent: [
             {
                 name: "violent-default",
-                unlock: { world: "violent" },
                 message: "Bursts of plenty from the scorching vents, but so hot.<br>No place for the young.",
             },
             {
@@ -213,7 +208,7 @@ SharkGame.Home = {
             {
                 name: "abandoned-exploration",
                 unlock: { upgrade: ["exploration"] },
-                message: "Great spires loom in the distance.<br>Loose cables are strung together on the horizon.<br>",
+                message: "Great spires loom in the distance.<br>Loose cables are strung together on the horizon.",
             },
             {
                 name: "abandoned-gate",
@@ -250,8 +245,7 @@ SharkGame.Home = {
         shrouded: [
             {
                 name: "shrouded-default",
-                unlock: { world: "shrouded" },
-                message: "The crystals are easier to find, but the darkness makes it hard to find anything else.<br>&nbsp",
+                message: "The crystals are easier to find, but the darkness makes it hard to find anything else.",
             },
             {
                 name: "eel-one",
@@ -269,29 +263,28 @@ SharkGame.Home = {
         frigid: [
             {
                 name: "frigid-default",
-                unlock: { world: "frigid" },
-                message: "So cold. Hard to move. Hard to do anything.<br>&nbsp",
+                message: "So cold. Hard to move. Hard to do anything.",
             },
             {
                 name: "frigid-ice-one",
-                unlock: { world: "frigid", resource: { ice: 50 } },
+                unlock: { resource: { ice: 50 } },
                 message: "Something has to be done before the ice destroys us all!<br>Maybe a machine can save us?",
             },
             {
                 name: "frigid-ice-two",
-                unlock: { world: "frigid", resource: { ice: 250 } },
+                unlock: { resource: { ice: 250 } },
                 message: "So cold. So hungry.<br><span class='smallDesc'>So hopeless.</span>",
             },
         ],
-        /* {
-            unlock: { world: "ethereal" },
+        /*
+        {
             message: "The water glows here.<br>It feels familiar.",
         },
         {
-            unlock: { world: "stone" },
             message:
                 "The jagged seafloor looks ancient, yet pristine.<br>Sponges thrive in great numbers on the rocks.",
-        }, */
+        },
+        */
     },
 
     init() {
@@ -305,9 +298,10 @@ SharkGame.Home = {
             name: h.tabName,
             discovered: h.tabDiscovered,
             code: h,
+            discoverReq: [],
         };
         // populate action discoveries (and reset removals)
-        $.each(SharkGame.HomeActions.getActionList(), (actionName, actionData) => {
+        _.each(SharkGame.HomeActions.getActionList(), (actionData) => {
             actionData.discovered = false;
             actionData.newlyDiscovered = false;
             actionData.isRemoved = false;
@@ -368,7 +362,7 @@ SharkGame.Home = {
             if (k === "all") {
                 categoryDiscovered = true;
             } else {
-                $.each(v.actions, (_, actionName) => {
+                _.each(v.actions, (actionName) => {
                     if (SharkGame.HomeActions.getActionList()[actionName]) {
                         categoryDiscovered = categoryDiscovered || SharkGame.HomeActions.getActionList()[actionName].discovered;
                     }
@@ -423,8 +417,8 @@ SharkGame.Home = {
     changeButtonTab(tabToChangeTo) {
         SharkGame.HomeActionCategories[tabToChangeTo].hasNewItem = false;
         if (tabToChangeTo === "all") {
-            $.each(SharkGame.HomeActionCategories, (k, v) => {
-                v.hasNewItem = false;
+            _.each(SharkGame.HomeActionCategories, (category) => {
+                category.hasNewItem = false;
             });
         }
         h.currentButtonTab = tabToChangeTo;
@@ -433,40 +427,29 @@ SharkGame.Home = {
     },
 
     updateMessage(suppressAnimation) {
-        const u = SharkGame.Upgrades.getUpgradeTable();
         const wi = SharkGame.WorldTypes[w.worldType];
-        let selectedIndex = h.currentExtraMessageIndex;
         const events = h.extraMessages[w.worldType];
 
-        $.each(events, (messageIndex, extraMessage) => {
-            let showThisMessage = true;
-            // check if should show this message
-            if (extraMessage.unlock) {
-                if (extraMessage.unlock.resource) {
-                    $.each(extraMessage.unlock.resource, (key, resource) => {
-                        showThisMessage = showThisMessage && r.getResource(key) >= resource;
-                    });
-                }
-                if (extraMessage.unlock.upgrade) {
-                    $.each(extraMessage.unlock.upgrade, (i, upgrade) => {
-                        showThisMessage = showThisMessage && u[upgrade].purchased;
-                    });
-                }
-                if (extraMessage.unlock.world) {
-                    showThisMessage = showThisMessage && w.worldType === extraMessage.unlock.world;
-                }
-                if (extraMessage.unlock.homeAction) {
-                    $.each(extraMessage.unlock.homeAction, (key, action) => {
-                        showThisMessage =
-                            showThisMessage &&
-                            SharkGame.HomeActions.getActionList()[action].discovered &&
-                            !SharkGame.HomeActions.getActionList()[action].newlyDiscovered;
-                    });
-                }
+        const selectedIndex = _.findLastIndex(events, (extraMessage) => {
+            // check if all requirements met
+            if (_.has(extraMessage, "unlock")) {
+                let requirementsMet = true;
+                requirementsMet &&= _.every(
+                    extraMessage.unlock.resource,
+                    (requiredAmount, resourceId) => r.getResource(resourceId) >= requiredAmount
+                );
+                requirementsMet &&= _.every(
+                    extraMessage.unlock.totalResource,
+                    (requiredAmount, resourceId) => r.getTotalResource(resourceId) >= requiredAmount
+                );
+                requirementsMet &&= _.every(extraMessage.unlock.upgrade, (upgradeId) => SharkGame.Upgrades.purchased.includes(upgradeId));
+                requirementsMet &&= _.every(extraMessage.unlock.homeAction, (actionName) => {
+                    const action = SharkGame.HomeActions.getActionList()[actionName];
+                    return action.discovered && !action.newlyDiscovered;
+                });
+                return requirementsMet;
             }
-            if (showThisMessage) {
-                selectedIndex = messageIndex;
-            }
+            return true;
         });
 
         // only edit DOM if necessary
@@ -482,7 +465,7 @@ SharkGame.Home = {
                 }
             }
             let message = "You are a shark in a " + wi.shortDesc + " sea.";
-            message += "<br><span id='extraMessage' class='medDesc'>&nbsp<br>&nbsp</span>";
+            message += "<br><span id='extraMessage' class='medDesc'><br></span>";
             tabMessage.html(message).prepend(sceneDiv);
 
             const extraMessageSel = $("#extraMessage");
@@ -537,6 +520,13 @@ SharkGame.Home = {
 
         // update home message
         h.updateMessage();
+
+        // update hovering messages
+        if (document.getElementById("tooltipbox").className.split(" ").includes("forHomeButton")) {
+            if (document.getElementById("tooltipbox").attributes.current) {
+                h.onHomeHover(null, document.getElementById("tooltipbox").attributes.current.value);
+            }
+        }
     },
 
     updateButton(actionName) {
@@ -613,21 +603,14 @@ SharkGame.Home = {
         // class that matches the setting.
         // The icon-off setting is a little trickier.  It needs two cases.  We check for a lack of spans to
         // see if the button is new, then check for the presence of any icon to see if the setting changed.
-        if (
-            !(
-                (button.html().includes("button-icon-top") && SharkGame.Settings.current.iconPositions === "top") ||
-                (button.html().includes("button-icon-side") && SharkGame.Settings.current.iconPositions === "side") ||
-                (button.html().includes("span") && SharkGame.Settings.current.iconPositions === "off")
-            ) ||
-            (button.html().includes("button-icon") && SharkGame.Settings.current.iconPositions === "off")
-        ) {
+        if (button.html().includes("button-icon") !== SharkGame.Settings.current.showIcons) {
             button.html(label);
 
             const spritename = "actions/" + actionName;
-            if (SharkGame.Settings.current.iconPositions !== "off") {
+            if (SharkGame.Settings.current.showIcons) {
                 const iconDiv = SharkGame.changeSprite(SharkGame.spriteIconPath, spritename, null, "general/missing-action");
                 if (iconDiv) {
-                    iconDiv.addClass("button-icon-" + SharkGame.Settings.current.iconPositions);
+                    iconDiv.addClass("button-icon");
                     button.prepend(iconDiv);
                 }
             }
@@ -660,9 +643,8 @@ SharkGame.Home = {
         }
         // check if resource cost exists
         if (action.cost) {
-            $.each(action.cost, (i, v) => {
-                const costResource = v.resource;
-                prereqsMet = prereqsMet && w.doesResourceExist(costResource);
+            _.each(action.cost, (cost) => {
+                prereqsMet &&= w.doesResourceExist(cost.resource);
             });
         }
         // check special worldtype prereqs
@@ -675,13 +657,13 @@ SharkGame.Home = {
             prereqsMet = prereqsMet && !action.prereq.notWorlds.includes(w.worldType);
         }
 
-        const ups = SharkGame.Upgrades.getUpgradeTable();
+        const upgradeTable = SharkGame.Upgrades.getUpgradeTable();
 
         // check upgrade prerequisites
         if (action.prereq.upgrade) {
-            $.each(action.prereq.upgrade, (_, v) => {
-                if (ups[v]) {
-                    prereqsMet = prereqsMet && ups[v].purchased;
+            _.each(action.prereq.upgrade, (upgradeId) => {
+                if (upgradeTable[upgradeId]) {
+                    prereqsMet &&= SharkGame.Upgrades.purchased.includes(upgradeId);
                 } else {
                     prereqsMet = false;
                 }
@@ -689,7 +671,7 @@ SharkGame.Home = {
         }
         // check if resulting resource exists
         if (action.effect.resource) {
-            $.each(action.effect.resource, (k, v) => {
+            $.each(action.effect.resource, (k) => {
                 prereqsMet = prereqsMet && w.doesResourceExist(k);
             });
         }
@@ -701,13 +683,13 @@ SharkGame.Home = {
         $.each(action.removedBy, (kind, by) => {
             switch (kind) {
                 case "otherActions":
-                    $.each(by, (k, v) => {
-                        disable = disable || h.areActionPrereqsMet(v);
+                    _.each(by, (otherAction) => {
+                        disable = disable || h.areActionPrereqsMet(otherAction);
                     });
                     break;
                 case "upgrades":
-                    $.each(by, (k, v) => {
-                        disable = disable || SharkGame.Upgrades.getUpgradeTable()[v].purchased;
+                    _.each(by, (upgrade) => {
+                        disable = disable || SharkGame.Upgrades.includes(upgrade);
                     });
                     break;
             }
@@ -735,23 +717,10 @@ SharkGame.Home = {
             buttonSelector.addClass("newlyDiscovered");
         }
     },
-
     getActionCategory(actionName) {
-        let categoryName = "";
-        $.each(SharkGame.HomeActionCategories, (categoryKey, categoryValue) => {
-            if (categoryName !== "") {
-                return;
-            }
-            $.each(categoryValue.actions, (k, v) => {
-                if (categoryName !== "") {
-                    return;
-                }
-                if (actionName === v) {
-                    categoryName = categoryKey;
-                }
-            });
+        return _.findKey(SharkGame.HomeActionCategories, (category) => {
+            return _.some(category.actions, (action) => action === actionName);
         });
-        return categoryName;
     },
 
     onHomeButton() {
@@ -823,18 +792,18 @@ SharkGame.Home = {
         button.addClass("disabled");
     },
 
-    onHomeHover() {
+    onHomeHover(_mouseEnterEvent, actionName) {
         if (!SharkGame.Settings.current.showTabHelp) {
             return;
         }
-        const button = $(this);
-        const actionName = button.attr("id");
+        if (!actionName) {
+            const button = $(this);
+            actionName = button.attr("id");
+        }
         const effects = SharkGame.HomeActions.getActionList()[actionName].effect;
         const validGenerators = {};
-        let numGen = 0;
         if (effects.resource) {
             $.each(effects.resource, (resource) => {
-                numGen += 1;
                 if (SharkGame.ResourceMap.get(resource).income) {
                     $.each(SharkGame.ResourceMap.get(resource).income, (incomeResource) => {
                         const genAmount = r.getProductAmountFromGeneratorResource(resource, incomeResource, 1);
@@ -848,22 +817,22 @@ SharkGame.Home = {
 
         let appendedProduce = false;
         let appendedConsume = false;
+        let appendedMultiply = false;
         let text = "";
 
         $.each(validGenerators, (incomeResource, amount) => {
             if (amount > 0) {
                 if (!appendedProduce) {
                     appendedProduce = true;
-                    text += "<span class='littleTooltipText'>PRODUCES</span>";
+                    text += "<span class='littleTooltipText'>PRODUCES</span><br/>";
                 }
                 text +=
-                    "<br/>" +
                     m
                         .beautifyIncome(
                             amount,
                             " " + r.getResourceName(incomeResource, false, false, false, SharkGame.getElementColor("tooltipbox", "background-color"))
                         )
-                        .bold();
+                        .bold() + "<br/>";
             }
         });
 
@@ -871,68 +840,84 @@ SharkGame.Home = {
             if (amount < 0) {
                 if (!appendedConsume) {
                     appendedConsume = true;
-                    if (!appendedProduce) {
-                        text += "<span class='littleTooltipText'>CONSUMES</span>";
-                    } else {
-                        text += "<br/> <span class='littleTooltipText'>CONSUMES</span>";
-                    }
+                    text += "<span class='littleTooltipText'>CONSUMES</span><br/>";
                 }
                 text +=
-                    "<br/>" +
                     m
                         .beautifyIncome(
                             -amount,
                             " " + r.getResourceName(incomeResource, false, false, false, SharkGame.getElementColor("tooltipbox", "background-color"))
                         )
-                        .bold();
+                        .bold() + "<br/>";
             }
         });
 
-        if (SharkGame.HomeActions.getActionList()[actionName].helpText) {
-            if (text !== "") {
-                text += "<br><span class='medDesc'>" + SharkGame.HomeActions.getActionList()[actionName].helpText + "</span>";
-            } else {
-                text += "<span class='medDesc'>" + SharkGame.HomeActions.getActionList()[actionName].helpText + "</span>";
-            }
-        }
-
-        if (numGen === 1) {
-            $.each(effects.resource, (resource) => {
-                const determiner = m.getDeterminer(resource);
-                if (determiner !== "") {
-                    text =
-                        m.getDeterminer(resource) +
-                        " " +
-                        r.getResourceName(resource, false, true, false, SharkGame.getElementColor("tooltipbox", "background-color")).bold() +
-                        "<br>" +
-                        text;
-                } else {
-                    text =
-                        r.getResourceName(resource, false, true, false, SharkGame.getElementColor("tooltipbox", "background-color")).bold() +
-                        "<br>" +
-                        text;
-                }
+        $.each(effects.resource, (resource) => {
+            $.each(SharkGame.ResourceIncomeAffectors[resource], (type, object) => {
+                $.each(object, (affected, degree) => {
+                    if (type === "multiply") {
+                        if (!appendedMultiply) {
+                            appendedMultiply = true;
+                            if (degree > 0) {
+                                text += "<span class='littleTooltipText'>INCREASES</span><br/>";
+                            } else {
+                                text += "<span class='littleTooltipText'>DECREASES</span><br/>";
+                            }
+                        }
+                        text +=
+                            "all ".bold() +
+                            r.getResourceName(affected, false, false, false, SharkGame.getElementColor("tooltipbox", "background-color")) +
+                            " gains ".bold() +
+                            " by " +
+                            (Math.round(degree * 100) + "%").bold() +
+                            " each<br>";
+                    }
+                });
             });
+        });
+
+        if (SharkGame.HomeActions.getActionList()[actionName].helpText) {
+            text += "<span class='medDesc'>" + SharkGame.HomeActions.getActionList()[actionName].helpText + "</span>";
         }
 
-        document.getElementById("tooltipbox").innerHTML = text;
-        $(".tooltip").addClass("forHomeButton");
+        $.each(effects.resource, (resource, amount) => {
+            if (amount !== 1) {
+                text =
+                    m.beautify(amount).bold() +
+                    " " +
+                    r.getResourceName(resource, false, true, false, SharkGame.getElementColor("tooltipbox", "background-color")).bold() +
+                    "<br>" +
+                    text;
+            } else {
+                const determiner = m.getDeterminer(resource);
+                text =
+                    (determiner ? determiner + " " : "") +
+                    r.getResourceName(resource, false, true, false, SharkGame.getElementColor("tooltipbox", "background-color")).bold() +
+                    "<br>" +
+                    text;
+            }
+        });
+
+        if (document.getElementById("tooltipbox").innerHTML !== text.replace(/'/g, '"')) {
+            document.getElementById("tooltipbox").innerHTML = text;
+        }
+        $("#tooltipbox").addClass("forHomeButton").attr("current", actionName);
     },
 
     onHomeUnhover() {
         document.getElementById("tooltipbox").innerHTML = "";
-        $(".tooltip").removeClass("forHomeButton");
+        $("#tooltipbox").removeClass("forHomeButton").attr("current", "");
     },
 
     getCost(action, amount) {
         const calcCost = {};
         const rawCost = action.cost;
 
-        $.each(rawCost, (costIndex, costObj) => {
+        _.each(rawCost, (costObj) => {
             const resource = SharkGame.PlayerResources.get(action.max);
             let currAmount = resource.amount;
             if (resource.jobs) {
-                $.each(resource.jobs, (_, v) => {
+                _.each(resource.jobs, (v) => {
                     currAmount += r.getResource(v);
                 });
             }
@@ -964,18 +949,16 @@ SharkGame.Home = {
             // its used as the determining resource for linear cost functions
             const resource = SharkGame.PlayerResources.get(action.max);
             let currAmount = resource.amount;
-            if (resource.jobs) {
-                $.each(resource.jobs, (_, v) => {
-                    currAmount += r.getResource(v);
-                });
-            }
+            _.each(resource.jobs, (job) => {
+                currAmount += r.getResource(job);
+            });
             max = Number.MAX_VALUE;
-            $.each(action.cost, (_, v) => {
-                const costResource = SharkGame.PlayerResources.get(v.resource).amount;
-                const k = v.priceIncrease;
+            _.each(action.cost, (costObject) => {
+                const costResource = SharkGame.PlayerResources.get(costObject.resource).amount;
+                const k = costObject.priceIncrease;
 
                 let subMax = -1;
-                switch (v.costFunction) {
+                switch (costObject.costFunction) {
                     case "constant":
                         subMax = SharkGame.MathUtil.constantMax(0, costResource, k);
                         break;

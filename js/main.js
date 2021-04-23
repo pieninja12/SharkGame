@@ -1,13 +1,32 @@
-/* eslint-disable-next-line no-var, no-use-before-define */
+/* eslint-disable-next-line no-var, no-use-before-define, no-shadow */
 var SharkGame = SharkGame || {};
 
 window.onmousemove = (e) => {
     const tooltip = document.getElementById("tooltipbox");
-    if (tooltip.innerHTML === "") return;
-    const x = e.clientX;
-    const y = e.clientY;
-    tooltip.style.top = y - 20 + "px";
-    tooltip.style.left = x + 15 + "px";
+    if (!tooltip) return;
+    const posX = e.clientX;
+    const posY = e.clientY;
+
+    const tooltipStyle = getComputedStyle(tooltip);
+
+    // get visual width in px, plus 15px offset from cursor
+    const tooltipWidth = [
+        tooltipStyle.width,
+        tooltipStyle.paddingLeft,
+        tooltipStyle.paddingRight,
+        tooltipStyle.borderLeft,
+        tooltipStyle.borderRight,
+        tooltipStyle.marginLeft,
+        tooltipStyle.marginRight,
+    ].reduce((prev, cur) => prev + parseInt(cur), 0);
+
+    tooltip.style.top = posY - 20 + "px";
+    // Would clip over right screen edge
+    if (tooltipWidth + posX + 35 > window.innerWidth) {
+        tooltip.style.left = posX - 10 - tooltipWidth + "px";
+    } else {
+        tooltip.style.left = posX + 15 + "px";
+    }
 };
 
 // CORE VARIABLES AND HELPER FUNCTIONS
@@ -93,6 +112,20 @@ $.extend(SharkGame, {
             intervalId = setInterval(nextStyle, time);
             cad.cycling = false;
         },
+
+        discoverAll() {
+            $.each(SharkGame.Tabs, (tabName) => {
+                if (tabName !== "current") {
+                    m.discoverTab(tabName);
+                }
+            });
+        },
+
+        giveEverything(amount = 1) {
+            SharkGame.ResourceMap.forEach((_v, key) => {
+                r.changeResource(key, amount);
+            });
+        },
     },
 
     credits:
@@ -119,10 +152,8 @@ $.extend(SharkGame, {
         "You are free to pay as much attention to the game as you want. " +
         "It will happily run in the background, and works even while closed.</p>" +
         "<p>To begin, you should catch fish. Once you have some fish, more actions will become available. " +
-        'If you have no idea what these actions do, click the "Toggle descriptions" button for more information.</p>' +
         "<p>If you are ever stuck, try actions you haven't yet tried. " +
-        "Remember, though, that sometimes patience is the only way forward. Patience and ever escalating numbers.</p>" +
-        "<p>If you are here because you think you have encountered a bug of some kind, report it on the <a href='https://discord.gg/nN7BQDJR2G' target='blank_'>discord</a>.</p>",
+        "<p>If you are here because you think you have encountered a bug of some kind, or you really need help, report it on the <a href='https://discord.gg/nN7BQDJR2G' target='blank_'>discord</a>.</p>",
 
     donate:
         "<p>You can <a href='https://www.sharktrust.org/Listing/Category/donate' target='_blank'>donate to help save sharks and mantas</a>!</p>" +
@@ -138,10 +169,10 @@ $.extend(SharkGame, {
         " if you'd like.)</span></p>",
 
     notice:
-        "<p>Welcome to the open alpha of v0.2 for New Frontiers.</p>" +
-        "<p>v0.2 is gonna be a complete rework of the planets in the base game! There's only one playable so far.</p>" +
-        "<p>This is an alpha; things will be missing. New stuff will get added over time.</p>" +
-        "<p>If you'd like to give feedback or contribute directly, check out the Discord link.</p>",
+        "<p>Welcome to the open <b>alpha</b> of v0.2 for New Frontiers.</p>" +
+        "<p>v0.2 is a total rework.<br/>Currently, only two worlds (besides starter) are playable.<br><b>Things will be missing.</b> New stuff will be added.</p>" +
+        "<p>To give feedback or contribute, check out our <a href='https://discord.gg/eYqApFkFPY'>Discord</a>.</p>" +
+        "<p>To play the stable version (with all planets), visit <a href='https://spencers145.github.io/SharkGame/'>this link</a>.</p>",
 
     spriteIconPath: "img/sharksprites.png",
     spriteHomeEventPath: "img/sharkeventsprites.png",
@@ -195,16 +226,7 @@ $.extend(SharkGame, {
         }
         let imageHtml = "";
         if (SharkGame.Settings.current.iconPositions !== "off") {
-            imageHtml +=
-                "<img width=" +
-                width +
-                " height=" +
-                height +
-                " src='" +
-                imagePath +
-                "' class='button-icon-" +
-                SharkGame.Settings.current.iconPositions +
-                "'>";
+            imageHtml += "<img width=" + width + " height=" + height + " src='" + imagePath + "' class='button-icon'>";
         }
         return imageHtml;
     },
@@ -239,16 +261,11 @@ SharkGame.TitleBar = {
         main: true,
         onClick() {
             try {
-                try {
-                    SharkGame.Save.saveGame();
-                } catch (err) {
-                    SharkGame.Log.addError(err);
-                    console.error(err);
-                }
-                SharkGame.Log.addMessage("Saved game.");
+                SharkGame.Save.saveGame();
             } catch (err) {
-                SharkGame.Log.addError(err.message);
+                SharkGame.Log.addError(err);
             }
+            SharkGame.Log.addMessage("Saved game.");
         },
     },
 
@@ -314,7 +331,7 @@ SharkGame.TitleBar = {
     discordLink: {
         name: "discord",
         main: false,
-        link: "https://discord.gg/nN7BQDJR2G",
+        link: "https://discord.gg/eYqApFkFPY",
     },
 
     noticeLink: {
@@ -482,17 +499,6 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         SharkGame.timestampGameStart = SharkGame.timestampGameStart || now;
         SharkGame.timestampRunStart = SharkGame.timestampRunStart || now;
 
-        // preserve settings or set defaults
-        $.each(SharkGame.Settings, (k, v) => {
-            if (k === "current") {
-                return;
-            }
-            const currentSetting = SharkGame.Settings.current[k];
-            if (typeof currentSetting === "undefined") {
-                SharkGame.Settings.current[k] = v.defaultSetting;
-            }
-        });
-
         // create the tooltip box
 
         // initialise and reset resources
@@ -506,9 +512,6 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         SharkGame.Gateway.init();
         SharkGame.Gateway.applyArtifacts(); // if there's any effects to carry over from a previous run
 
-        // reset log
-        SharkGame.Log.clearMessages();
-
         // initialise tabs
         SharkGame.Home.init();
         SharkGame.Lab.init();
@@ -521,13 +524,26 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
 
         SharkGame.Tabs.current = "home";
 
+        // preserve settings or set defaults
+        $.each(SharkGame.Settings, (k, v) => {
+            if (k === "current") {
+                return;
+            }
+            const currentSetting = SharkGame.Settings.current[k];
+            if (typeof currentSetting === "undefined") {
+                SharkGame.Settings.current[k] = v.defaultSetting;
+            }
+            // apply all settings as a failsafe
+            (v.onChange || $.noop)();
+        });
+
         // load save game data if present
         if (SharkGame.Save.savedGameExists()) {
             try {
                 SharkGame.Save.loadGame();
                 SharkGame.Log.addMessage("Loaded game.");
             } catch (err) {
-                SharkGame.Log.addError(err.message);
+                SharkGame.Log.addError(err);
             }
         }
 
@@ -558,6 +574,12 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         if (SharkGame.Settings.current.updateCheck) {
             SharkGame.Main.checkForUpdateHandler = setInterval(m.checkForUpdate, 300000);
         }
+
+        $("#title").on("click", (event) => {
+            if (event.clientX < 100 && event.clientY > 150 && event.clientY < 200) {
+                event.currentTarget.classList.add("radical");
+            }
+        });
     },
 
     tick() {
@@ -595,11 +617,18 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
 
             SharkGame.before = now;
         }
+
+        //see if resource table tooltip needs updating
+        if (document.getElementById("tooltipbox").className.split(" ").includes("forIncomeTable")) {
+            if (document.getElementById("tooltipbox").attributes.current) {
+                r.tableTextEnter(null, document.getElementById("tooltipbox").attributes.current.value);
+            }
+        }
     },
 
     checkTabUnlocks() {
-        $.each(SharkGame.Tabs, (k, v) => {
-            if (k === "current" || v.discovered) {
+        $.each(SharkGame.Tabs, (tabName, v) => {
+            if (tabName === "current" || v.discovered) {
                 return;
             }
             let reqsMet = true;
@@ -609,14 +638,14 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
                 reqsMet = reqsMet && r.checkResources(v.discoverReq.resource, true);
             }
 
-            const ups = SharkGame.Upgrades.getUpgradeTable();
+            const upgradeTable = SharkGame.Upgrades.getUpgradeTable();
             // check upgrades
             if (v.discoverReq.upgrade) {
                 let anyUpgradeExists = false;
-                $.each(v.discoverReq.upgrade, (_, value) => {
-                    if (ups[value]) {
+                _.each(v.discoverReq.upgrade, (upgradeName) => {
+                    if (upgradeTable[upgradeName]) {
                         anyUpgradeExists = true;
-                        reqsMet = reqsMet && ups[value].purchased;
+                        reqsMet &&= SharkGame.Upgrades.purchased.includes(upgradeName);
                     }
                 });
                 if (!anyUpgradeExists) {
@@ -626,7 +655,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
 
             if (reqsMet) {
                 // unlock tab!
-                m.discoverTab(k);
+                m.discoverTab(tabName);
                 SharkGame.Log.addDiscovery("Discovered " + v.name + "!");
             }
         });
@@ -642,8 +671,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
             SharkGame.Save.saveGame();
             SharkGame.Log.addMessage("Autosaved.");
         } catch (err) {
-            SharkGame.Log.addError(err.message);
-            console.error(err.trace);
+            SharkGame.Log.addError(err);
         }
     },
 
@@ -716,8 +744,8 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         // add navigation
         // check if we have more than one discovered tab, else bypass this
         let numTabsDiscovered = 0;
-        $.each(tabs, (k, v) => {
-            if (v.discovered) {
+        $.each(tabs, (_tabName, tab) => {
+            if (tab.discovered) {
                 numTabsDiscovered++;
             }
         });
@@ -752,9 +780,9 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         // add buy buttons
         const buttonList = $("#tabButtons");
         buttonList.empty();
-        $.each(SharkGame.Settings.buyAmount.options, (_, amount) => {
+        _.each(SharkGame.Settings.buyAmount.options, (amount) => {
             const disableButton = amount === SharkGame.Settings.current.buyAmount;
-            buttonList.prepend(
+            buttonList.append(
                 $("<li>").append(
                     $("<button>")
                         .addClass("min" + (disableButton ? " disabled" : ""))
@@ -790,11 +818,10 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
                     thisButton.addClass("disabled");
                 });
         });
-        buttonList.prepend(
+        buttonList.append(
             $("<li>").append(
                 $("<input>")
                     .prop("type", "number")
-                    .addClass("inputbox")
                     .attr("id", "custom-input")
                     .attr("value", 1)
                     .attr("min", "1")
@@ -813,7 +840,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
 
     getBuyAmount() {
         if (SharkGame.Settings.current.buyAmount === "custom") {
-            return Math.floor($("#custom-input")[0].valueAsNumber) >= 1 && $("#custom-input")[0].valueAsNumber < 1000000000000000000
+            return Math.floor($("#custom-input")[0].valueAsNumber) >= 1 && $("#custom-input")[0].valueAsNumber < 1e18
                 ? Math.floor($("#custom-input")[0].valueAsNumber)
                 : 1;
         } else {
@@ -855,36 +882,53 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
     setUpOptions() {
         const optionsTable = $("<table>").attr("id", "optionTable");
         // add settings specified in settings.js
-        $.each(SharkGame.Settings, (key, value) => {
-            if (key === "current" || !value.show) {
-                return;
+        const categories = {};
+        $.each(SharkGame.Settings, (name, setting) => {
+            if (setting.category) {
+                if (!categories[setting.category]) {
+                    categories[setting.category] = [];
+                }
+                categories[setting.category].push(name);
             }
-            const row = $("<tr>");
+        });
 
-            // show setting name
-            row.append(
-                $("<td>")
-                    .addClass("optionLabel")
-                    .html(value.name + ":" + "<br/><span class='smallDesc'>(" + value.desc + ")</span>")
-            );
+        let firstCategory = true;
 
-            const currentSetting = SharkGame.Settings.current[key];
+        $.each(categories, (categoryName, categoryList) => {
+            optionsTable.append($("<tr>").html((firstCategory ? "<br>" : "<br><br>") + "<u>" + categoryName.bold() + "</u>"));
+            firstCategory = false;
+            _.each(categoryList, (settingName) => {
+                const setting = SharkGame.Settings[settingName];
+                if (settingName === "current" || !setting.show) {
+                    return;
+                }
+                const optionRow = $("<tr>");
 
-            // show setting adjustment buttons
-            $.each(value.options, (k, v) => {
-                const isCurrentSetting = k === value.options.indexOf(currentSetting);
-                row.append(
-                    $("<td>").append(
-                        $("<button>")
-                            .attr("id", "optionButton-" + key + "-" + k)
-                            .addClass("option-button" + (isCurrentSetting ? " disabled" : ""))
-                            .html(typeof v === "boolean" ? (v ? "on" : "off") : v)
-                            .on("click", m.onOptionClick)
-                    )
+                // show setting name
+                optionRow.append(
+                    $("<td>")
+                        .addClass("optionLabel")
+                        .html(setting.name + ":" + "<br/><span class='smallDesc'>(" + setting.desc + ")</span>")
                 );
-            });
 
-            optionsTable.append(row);
+                const currentSetting = SharkGame.Settings.current[settingName];
+
+                // show setting adjustment buttons
+                $.each(setting.options, (index, optionValue) => {
+                    const isSelectedOption = optionValue === currentSetting;
+                    optionRow.append(
+                        $("<td>").append(
+                            $("<button>")
+                                .attr("id", "optionButton-" + settingName + "-" + index)
+                                .addClass("option-button" + (isSelectedOption ? " disabled" : ""))
+                                .html(typeof optionValue === "boolean" ? (optionValue ? "on" : "off") : optionValue)
+                                .on("click", m.onOptionClick)
+                        )
+                    );
+                });
+
+                optionsTable.append(optionRow);
+            });
         });
 
         // SAVE IMPORT/EXPORT
@@ -904,11 +948,9 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
                         if ($(this).hasClass("disabled")) return;
                         const importText = $("#importExportField").val();
                         if (importText === "") {
-                            SharkGame.hidePane();
+                            SharkGame.Main.hidePane();
                             SharkGame.Log.addError("You need to paste something in first!");
-                        } else if (
-                            confirm("Are you absolutely sure? This will override your current save. WARNING: OLD SAVES DO NOT IMPORT PROPERLY YET!")
-                        ) {
+                        } else if (confirm("Are you absolutely sure? This will override your current save.")) {
                             SharkGame.Save.importData(importText);
                         }
                     })
@@ -942,13 +984,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
                     .addClass("option-button")
                     .on("click", () => {
                         if (confirm("Are you absolutely sure you want to wipe your save?\nIt'll be gone forever!")) {
-                            SharkGame.Save.deleteSave();
-                            m.resetTimers();
-                            g.deleteArtifacts(); // they're out of the save data, but not the working game memory!
-                            r.reconstructResourcesTable();
-                            w.worldType = "start"; // nothing else will reset this
-                            w.planetLevel = 1;
-                            m.init(); // reset
+                            SharkGame.Save.wipeSave();
                         }
                     })
             )
@@ -987,8 +1023,8 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
             const segment = $("<div>").addClass("paneContentDiv");
             segment.append($("<h3>").html(version + ": "));
             const changeList = $("<ul>");
-            $.each(changes, (_, v) => {
-                changeList.append($("<li>").html(v));
+            _.each(changes, (changeLogEntry) => {
+                changeList.append($("<li>").html(changeLogEntry));
             });
             segment.append(changeList);
             changelogContent.append(segment);
@@ -1055,8 +1091,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
                 SharkGame.Save.saveGame();
                 SharkGame.Log.addMessage("Game saved.");
             } catch (err) {
-                SharkGame.Log.addError(err.message);
-                console.error(err.trace);
+                SharkGame.Log.addError(err);
             }
         }
     },
@@ -1071,7 +1106,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         titleDiv.append(
             $("<div>")
                 .attr("id", "paneHeaderCloseButtonDiv")
-                .append($("<button>").attr("id", "paneHeaderCloseButton").addClass("min").html("&nbsp x &nbsp").on("click", m.hidePane))
+                .append($("<button>").attr("id", "paneHeaderCloseButton").addClass("min close-button").html("✕").on("click", m.hidePane))
         );
         pane.append(titleDiv);
         pane.append($("<div>").attr("id", "paneHeaderEnd").addClass("clear-fix"));
@@ -1104,8 +1139,6 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
             } else {
                 overlay.show().css("opacity", overlayOpacity);
             }
-            // adjust overlay height
-            overlay.height($(document).height());
         }
 
         // adjust header
@@ -1153,25 +1186,17 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         return w.worldType === "start" && !(r.getTotalResource("essence") > 0);
     },
 
-    // DEBUG FUNCTIONS
-    discoverAll() {
-        $.each(SharkGame.Tabs, (k, v) => {
-            if (k !== "current") {
-                m.discoverTab(k);
-            }
-        });
-    },
-
     getDeterminer(name) {
         const firstLetter = SharkGame.ResourceMap.get(name).name.charAt(0);
-        if ("aeiou".includes(firstLetter)) {
-            return "an";
-            //note to self: make the next line not suck
-            // Possibly add an "uncountable" property to resources somehow? Manual works fine though
-        } else if (!["algae", "coral", "spronge", "delphinium", "coralglass", "sharkonium", "residue", "tar", "ice", "science"].includes(name)) {
-            return "a";
-        } else {
+
+        //note to self: make the next line not suck
+        // Possibly add an "uncountable" property to resources somehow? Manual works fine though
+        if (["algae", "coral", "spronge", "delphinium", "coralglass", "sharkonium", "residue", "tar", "ice", "science", "papyrus"].includes(name)) {
             return "";
+        } else if ("aeiou".includes(firstLetter)) {
+            return "an";
+        } else {
+            return "a";
         }
     },
 
@@ -1196,13 +1221,6 @@ SharkGame.Button = {
 
     makeButton(id, name, div, handler) {
         return $("<button>").html(name).attr("id", id).appendTo(div).on("click", handler);
-    },
-
-    replaceButton(id, name, handler) {
-        return $("#" + id)
-            .html(name)
-            .off("click")
-            .on("click", handler);
     },
 };
 
@@ -1231,6 +1249,17 @@ SharkGame.FunFacts = [
 ];
 
 SharkGame.Changelog = {
+    "<a href='https://github.com/spencers145/SharkGame'>New Frontiers</a> 0.2 patch 042221a": [
+        "Implemented reworked gameplay for the Haven worldtype.",
+        "Made sweeping changes to the UI.",
+        "Improved grotto formatting.",
+        "Changed the colors for Haven worlds.",
+        "In the grotto, amounts for each producer now update live.",
+        "Both kinds of tooltips update live.",
+        "Tooltips can tell you more things: e.g., it now says how much science you get from sea apples.",
+        "Added minimized titlebar. You can switch it back to the old one in the options menu.",
+        "Added categories to options menu. Now it's readable!",
+    ],
     "<a href='https://github.com/spencers145/SharkGame'>New Frontiers</a> 0.2 patch 031421a": [
         "Fixed bug related to how artifacts display in the grotto.",
         "Fixed bug related to artifact affects not applying properly.",
@@ -1247,7 +1276,7 @@ SharkGame.Changelog = {
     "<a href='https://github.com/spencers145/SharkGame'>New Frontiers</a> 0.2 - New Perspectives (2021/??/??)": [
         "Scrapped Chaotic worldtype. Completely.",
         "Implemented gameplay for 1 out of 7 necessary planet reworks.",
-        "Implemented some new assets.",
+        "Implemented new assets.",
     ],
     "<a href='https://github.com/spencers145/SharkGame'>New Frontiers</a> 0.11 - New Foundations (2021/1/27)": [
         "New, greatly improved UI for everything.",
