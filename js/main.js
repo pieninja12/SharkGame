@@ -1,3 +1,4 @@
+"use strict";
 /* eslint-disable-next-line no-var, no-use-before-define, no-shadow */
 var SharkGame = SharkGame || {};
 
@@ -177,6 +178,11 @@ $.extend(SharkGame, {
     spriteIconPath: "img/sharksprites.png",
     spriteHomeEventPath: "img/sharkeventsprites.png",
 
+    /**
+     *
+     * @param {any[]} choices
+     * @returns {any} A random element of choices
+     */
     choose(choices) {
         return choices[Math.floor(Math.random() * choices.length)];
     },
@@ -884,7 +890,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         // add settings specified in settings.js
         const categories = {};
         $.each(SharkGame.Settings, (name, setting) => {
-            if (setting.category) {
+            if (typeof setting.category === "string") {
                 if (!categories[setting.category]) {
                     categories[setting.category] = [];
                 }
@@ -892,14 +898,11 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
             }
         });
 
-        let firstCategory = true;
-
-        $.each(categories, (categoryName, categoryList) => {
-            optionsTable.append($("<tr>").html((firstCategory ? "<br>" : "<br><br>") + "<u>" + categoryName.bold() + "</u>"));
-            firstCategory = false;
-            _.each(categoryList, (settingName) => {
+        $.each(categories, (category, settings) => {
+            optionsTable.append($("<tr>").html("<br><span style='text-decoration: underline'>" + category.bold() + "</span>"));
+            _.each(settings, (settingName) => {
                 const setting = SharkGame.Settings[settingName];
-                if (settingName === "current" || !setting.show) {
+                if (settingName === "current") {
                     return;
                 }
                 const optionRow = $("<tr>");
@@ -1183,7 +1186,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
     },
 
     isFirstTime() {
-        return w.worldType === "start" && !(r.getTotalResource("essence") > 0);
+        return w.worldType === "start" && r.getTotalResource("essence") <= 0;
     },
 
     getDeterminer(name) {
@@ -1249,7 +1252,8 @@ SharkGame.FunFacts = [
 ];
 
 SharkGame.Changelog = {
-    "<a href='https://github.com/spencers145/SharkGame'>New Frontiers</a> 0.2 patch 042221a": [
+    "<a href='https://github.com/spencers145/SharkGame'>New Frontiers</a> 0.2 patch 20210515a": ["Added missing flavor text.", "Internal stuff."],
+    "<a href='https://github.com/spencers145/SharkGame'>New Frontiers</a> 0.2 patch 20210422a": [
         "Implemented reworked gameplay for the Haven worldtype.",
         "Made sweeping changes to the UI.",
         "Improved grotto formatting.",
@@ -1260,14 +1264,14 @@ SharkGame.Changelog = {
         "Added minimized titlebar. You can switch it back to the old one in the options menu.",
         "Added categories to options menu. Now it's readable!",
     ],
-    "<a href='https://github.com/spencers145/SharkGame'>New Frontiers</a> 0.2 patch 031421a": [
+    "<a href='https://github.com/spencers145/SharkGame'>New Frontiers</a> 0.2 patch 20210314a": [
         "Fixed bug related to how artifacts display in the grotto.",
         "Fixed bug related to artifact affects not applying properly.",
         "Fixed bug where the grotto would show an upgrade multiplier for everything, even if it was x1.",
         "Fixed bug where artifact effects would not reset when importing.",
         "Added 'INCOME PER' statistic to Simple grotto. Shows absolutely how much of a resource you get per generator.",
     ],
-    "<a href='https://github.com/spencers145/SharkGame'>New Frontiers</a> 0.2 patch 031221a": [
+    "<a href='https://github.com/spencers145/SharkGame'>New Frontiers</a> 0.2 patch 20210312a": [
         "Added simplified grotto.",
         "Made grotto way easier to understand.",
         "Added tooltips to income table.",

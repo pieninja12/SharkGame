@@ -1,3 +1,4 @@
+"use strict";
 SharkGame.Save = {
     saveFileName: "sharkGameSave",
 
@@ -169,15 +170,13 @@ SharkGame.Save = {
             // apply artifacts (world needs to be init first before applying other artifacts, but special ones need to be _loaded_ first)
             g.applyArtifacts(true);
 
-            if (saveData.tabs) {
-                $.each(saveData.tabs, (k, v) => {
-                    if (SharkGame.Tabs[k]) {
-                        SharkGame.Tabs[k].discovered = v;
-                    }
-                });
-                if (saveData.tabs.current) {
-                    SharkGame.Tabs.current = saveData.tabs.current;
+            $.each(saveData.tabs, (tabName, discovered) => {
+                if (_.has(SharkGame.Tabs, tabName) && tabName !== "current") {
+                    SharkGame.Tabs[tabName].discovered = discovered;
                 }
+            });
+            if (saveData.tabs.current) {
+                SharkGame.Tabs.current = saveData.tabs.current;
             }
 
             if (saveData.completedRequirements) {
@@ -187,15 +186,13 @@ SharkGame.Save = {
             // recalculate income table to make sure that the grotto doesnt freak out if its the first tab that loads
             r.recalculateIncomeTable();
 
-            if (saveData.settings) {
-                $.each(saveData.settings, (k, v) => {
-                    if (SharkGame.Settings.current[k] !== undefined) {
-                        SharkGame.Settings.current[k] = v;
-                        // update anything tied to this setting right off the bat
-                        (SharkGame.Settings[k].onChange || $.noop)();
-                    }
-                });
-            }
+            $.each(saveData.settings, (k, v) => {
+                if (SharkGame.Settings.current[k] !== undefined) {
+                    SharkGame.Settings.current[k] = v;
+                    // update anything tied to this setting right off the bat
+                    (SharkGame.Settings[k].onChange || $.noop)();
+                }
+            });
 
             const currTimestamp = _.now();
             // create surrogate timestamps if necessary
@@ -676,18 +673,19 @@ SharkGame.Save = {
         },
 
         function update13(save) {
-            _.each(["historian", "crimsonCombine", "kelpCultivator"], (v) => {
-                save.resources[v] = { amount: 0, totalAmount: 0 };
+            _.each(["historian", "crimsonCombine", "kelpCultivator"], (resourceName) => {
+                save.resources[resourceName] = { amount: 0, totalAmount: 0 };
             });
             _.each(
                 ["coralCollection", "whaleCommunication", "delphineHistory", "whaleSong", "farHavenExploration", "crystallineConstruction"],
-                (v) => {
-                    save.upgrades[v] = false;
+                (upgradeName) => {
+                    save.upgrades[upgradeName] = false;
                 }
             );
             return save;
         },
 
+        // Haven rework
         function update14(save) {
             _.each(
                 [
@@ -736,6 +734,7 @@ SharkGame.Save = {
                 delete save.upgrades.coralHalls;
             }
 
+            // Don't bother saving 0 or null values, they're implied already
             _.each(save.resources, (resource, resourceId) => {
                 if ([0, null].includes(resource.amount) && [0, null].includes(resource.totalAmount)) {
                     delete save.resources[resourceId];
@@ -764,6 +763,18 @@ SharkGame.Save = {
                 }
             });
             save.completedWorlds = completedWorlds;
+
+            return save;
+        },
+
+        // Frigid rework
+        function update15(save) {
+            if (_.has(save, "settings.showTabHelp")) {
+                if (!_.has(save, "settings.showTooltips")) {
+                    save.settings.showTooltops = save.settings.showTabHelp;
+                }
+                delete save.settings.showTabHelp;
+            }
 
             return save;
         },

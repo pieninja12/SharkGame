@@ -31,6 +31,9 @@
         <!-- load frameworks -->
         <!-- jQuery -->
         <script type="text/javascript" src="js/lib/jquery.min.js"></script>
+        <!-- jQuery migrate plugin
+        <script src="https://code.jquery.com/jquery-migrate-3.3.2.js"></script>
+        -->
         <!-- lodash -->
         <script type="text/javascript" src="js/lib/lodash.min.js"></script>
 
@@ -83,7 +86,7 @@
             var cheatsPlease = "When you find a cheat code, put () after it and hit enter. I'm not going to tell you them.";
             function sgdebug() {
                 // debug is a command-line API
-                SharkGame.HomeActions.getActionList().debugbutton.unauthorized = false;
+                SharkGame.HomeActions.getActionTable().debugbutton.unauthorized = false;
             }
             function pause() {
                 if (cad.stop) {
