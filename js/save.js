@@ -10,7 +10,7 @@ SharkGame.Save = {
             resources: {},
             tabs: {},
             completedRequirements: {},
-            world: { type: w.worldType, level: w.planetLevel },
+            world: { type: world.worldType, level: world.planetLevel },
             artifacts: {},
             gateway: { betweenRuns: SharkGame.gameOver, wonGame: SharkGame.wonGame },
         };
@@ -128,27 +128,27 @@ SharkGame.Save = {
                 SharkGame.Log.addMessage("Updated save data from v " + saveData.version + " to " + SharkGame.VERSION + ".");
             }
 
-            r.init();
+            res.init();
 
-            $.each(saveData.resources, (k, v) => {
+            $.each(saveData.resources, (resourceId, resource) => {
                 // check that this isn't an old resource that's been removed from the game for whatever reason
-                if (SharkGame.PlayerResources.has(k)) {
-                    SharkGame.PlayerResources.get(k).amount = isNaN(v.amount) ? 0 : v.amount;
-                    SharkGame.PlayerResources.get(k).totalAmount = isNaN(v.totalAmount) ? 0 : v.totalAmount;
+                if (SharkGame.PlayerResources.has(resourceId)) {
+                    SharkGame.PlayerResources.get(resourceId).amount = isNaN(resource.amount) ? 0 : resource.amount;
+                    SharkGame.PlayerResources.get(resourceId).totalAmount = isNaN(resource.totalAmount) ? 0 : resource.totalAmount;
                 }
             });
 
             // load world type and level and apply world properties
             if (saveData.world) {
-                w.init();
-                w.worldType = saveData.world.type;
-                w.planetLevel = saveData.world.level;
-                w.apply();
-                h.init();
+                world.init();
+                world.worldType = saveData.world.type;
+                world.planetLevel = saveData.world.level;
+                world.apply();
+                home.init();
             }
 
             // hacky kludge: force table creation
-            r.reconstructResourcesTable();
+            res.reconstructResourcesTable();
 
             SharkGame.Lab.resetUpgrades();
 
@@ -156,19 +156,19 @@ SharkGame.Save = {
                 SharkGame.Lab.addUpgrade(upgradeId);
             });
 
-            g.init();
+            gateway.init();
             _.each(saveData.completedWorlds, (worldType) => {
-                g.markWorldCompleted(worldType);
+                gateway.markWorldCompleted(worldType);
             });
 
             // load artifacts (need to have the cost reducer loaded before world init)
-            $.each(saveData.artifacts, (k, v) => {
-                if (SharkGame.Artifacts[k]) {
-                    SharkGame.Artifacts[k].level = v;
+            $.each(saveData.artifacts, (artifactId, level) => {
+                if (SharkGame.Artifacts[artifactId]) {
+                    SharkGame.Artifacts[artifactId].level = level;
                 }
             });
             // apply artifacts (world needs to be init first before applying other artifacts, but special ones need to be _loaded_ first)
-            g.applyArtifacts(true);
+            gateway.applyArtifacts(true);
 
             $.each(saveData.tabs, (tabName, discovered) => {
                 if (_.has(SharkGame.Tabs, tabName) && tabName !== "current") {
@@ -184,13 +184,15 @@ SharkGame.Save = {
             }
 
             // recalculate income table to make sure that the grotto doesnt freak out if its the first tab that loads
-            r.recalculateIncomeTable();
+            res.recalculateIncomeTable();
 
-            $.each(saveData.settings, (k, v) => {
-                if (SharkGame.Settings.current[k] !== undefined) {
-                    SharkGame.Settings.current[k] = v;
+            $.each(saveData.settings, (settingId, currentvalue) => {
+                if (SharkGame.Settings.current[settingId] !== undefined) {
+                    SharkGame.Settings.current[settingId] = currentvalue;
                     // update anything tied to this setting right off the bat
-                    (SharkGame.Settings[k].onChange || $.noop)();
+                    if (typeof SharkGame.Settings[settingId].onChange === "function") {
+                        SharkGame.Settings[settingId].onChange();
+                    }
                 }
             });
 
@@ -221,7 +223,7 @@ SharkGame.Save = {
                 if (saveData.gateway.betweenRuns) {
                     simulateOffline = false;
                     SharkGame.wonGame = saveData.gateway.wonGame;
-                    m.endGame(true);
+                    main.endGame(true);
                 }
             }
 
@@ -236,8 +238,8 @@ SharkGame.Save = {
                 }
 
                 // process this
-                r.recalculateIncomeTable();
-                m.processSimTime(secondsElapsed);
+                res.recalculateIncomeTable();
+                main.processSimTime(secondsElapsed);
 
                 // acknowledge long time gaps
                 if (secondsElapsed > 3600) {
@@ -296,7 +298,7 @@ SharkGame.Save = {
             SharkGame.Log.addError(err);
         }
         // refresh current tab
-        m.setUpTab();
+        main.setUpTab();
     },
 
     exportData() {
@@ -501,8 +503,8 @@ SharkGame.Save = {
                     "tar",
                     "ice",
                 ],
-                (v) => {
-                    save.resources[v] = { amount: 0, totalAmount: 0 };
+                (resourceId) => {
+                    save.resources[resourceId] = { amount: 0, totalAmount: 0 };
                 }
             );
             _.each(
@@ -535,8 +537,8 @@ SharkGame.Save = {
                     "octopusMethodology",
                     "octalEfficiency",
                 ],
-                (v) => {
-                    save.upgrades[v] = false;
+                (upgradeId) => {
+                    save.upgrades[upgradeId] = false;
                 }
             );
             save.world = { type: "start", level: 1 };
@@ -573,8 +575,8 @@ SharkGame.Save = {
                     "industryTotem",
                     "wardingTotem",
                 ],
-                (v) => {
-                    save.artifacts[v] = 0;
+                (artifactId) => {
+                    save.artifacts[artifactId] = 0;
                 }
             );
             save.gateway = { betweenRuns: false };
@@ -604,8 +606,8 @@ SharkGame.Save = {
 
         // v 0.71
         function update7(save) {
-            _.each(["eggBrooder", "diver"], (v) => {
-                save.resources[v] = { amount: 0, totalAmount: 0 };
+            _.each(["eggBrooder", "diver"], (resourceId) => {
+                save.resources[resourceId] = { amount: 0, totalAmount: 0 };
             });
             _.each(
                 [
@@ -619,8 +621,8 @@ SharkGame.Save = {
                     "mobiusShells",
                     "imperialDesigns",
                 ],
-                (v) => {
-                    save.upgrades[v] = false;
+                (upgradeId) => {
+                    save.upgrades[upgradeId] = false;
                 }
             );
             return save;
@@ -631,8 +633,8 @@ SharkGame.Save = {
             save = $.extend(true, save, {
                 completedWorlds: {},
             });
-            _.each(["iterativeDesign", "superprocessing"], (v) => {
-                save.upgrades[v] = false;
+            _.each(["iterativeDesign", "superprocessing"], (upgradeId) => {
+                save.upgrades[upgradeId] = false;
             });
             _.each(["start", "marine", "chaotic", "haven", "tempestuous", "violent", "abandoned", "shrouded", "frigid"], (worldType) => {
                 save.completedWorlds[worldType] = false;
@@ -656,12 +658,15 @@ SharkGame.Save = {
 
         // MODDED v0.2
         function update11(save) {
-            _.each(["investigator", "filter", "ancientPart"], (v) => {
-                save.resources[v] = { amount: 0, totalAmount: 0 };
+            _.each(["investigator", "filter", "ancientPart"], (resourceId) => {
+                save.resources[resourceId] = { amount: 0, totalAmount: 0 };
             });
-            _.each(["farAbandonedExploration", "reverseEngineering", "highEnergyFusion", "artifactAssembly", "superiorSearchAlgorithms"], (v) => {
-                save.upgrades[v] = false;
-            });
+            _.each(
+                ["farAbandonedExploration", "reverseEngineering", "highEnergyFusion", "artifactAssembly", "superiorSearchAlgorithms"],
+                (upgradeId) => {
+                    save.upgrades[upgradeId] = false;
+                }
+            );
             return save;
         },
 
