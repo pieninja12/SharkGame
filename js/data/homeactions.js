@@ -3109,7 +3109,7 @@ SharkGame.HomeActions = {
 
         // URCHIN JOB ////////////////////////////////////////////////////////////////////////////////////
 
-        getSpanwer: {
+        getSpawner: {
             name: "Designate urchin spawner",
             effect: {
                 resource: {
