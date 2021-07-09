@@ -661,9 +661,9 @@ SharkGame.Resources = {
         if (SharkGame.Settings.current.colorCosts !== "none") {
             extraStyle =
                 " style='color:" +
-                (SharkGame.Settings.current.colorCosts === "color"
-                    ? SharkGame.ResourceMap.get(resourceName).color
-                    : SharkGame.getBrightColor(SharkGame.ResourceMap.get(resourceName).color)) +
+                (SharkGame.Settings.current.colorCosts === "bright"
+                    ? SharkGame.getBrightColor(SharkGame.ResourceMap.get(resourceName).color)
+                    : SharkGame.ResourceMap.get(resourceName).color) +
                 "'";
         }
         return "<span class='click-passthrough'" + extraStyle + ">" + textToColor + "</span>";
@@ -688,7 +688,7 @@ SharkGame.Resources = {
         }
 
         if (SharkGame.Settings.current.colorCosts !== "none") {
-            let color = SharkGame.Settings.current.colorCosts === "color" ? resource.color : SharkGame.getBrightColor(resource.color);
+            let color = SharkGame.Settings.current.colorCosts === "bright" ? SharkGame.getBrightColor(resource.color) : resource.color;
             if (darken) {
                 color = SharkGame.colorLum(resource.color, -0.5);
             } else if (background) {
