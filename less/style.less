@@ -3,10 +3,10 @@
 -------------------------------------------------------*/
 //abandoned theme
 @color-lighter-abandoned: #7e798f;
-@color-light-abandoned: #363241;
+@color-light-abandoned: #454152;
 @color-med-abandoned: #1f1b2c;
 @color-dark-abandoned: #171226;
-@color-darker-abandoned: #0e091c;
+@color-darker-abandoned: #0a0514;
 
 //chaotic theme
 @color-lighter-chaotic: #a2b3ae;
@@ -16,18 +16,18 @@
 @color-darker-chaotic: #113a2d;
 
 //frigid theme
-@color-lighter-frigid: #b1bcc3;
-@color-light-frigid: #8098a8;
-@color-med-frigid: #4d7a99;
-@color-dark-frigid: #2b5f82;
-@color-darker-frigid: #124669;
+@color-lighter-frigid: #c0cdd4;
+@color-light-frigid: #5d829b;
+@color-med-frigid: #2f5d7c;
+@color-dark-frigid: #14415f;
+@color-darker-frigid: #05283f;
 
 //haven theme
-@color-lighter-haven: #699eaa;
+@color-lighter-haven: #75aab6;
 @color-light-haven: #2f7591;
 @color-med-haven: #1d5372;
-@color-dark-haven: #083b53;
-@color-darker-haven: #002f42;
+@color-dark-haven: #053247;
+@color-darker-haven: #001d2b;
 
 // marine theme (default)
 @color-lighter: #7788aa;
@@ -72,10 +72,10 @@
 @color-error-bg: #800000;
 
 @color-discovery: #ace3d1;
-@color-discovery-bg: darken(@color-discovery, 15%);
-@color-discovery-bg-dark: darken(@color-discovery, 30%);
-@color-discovery-bg-darker: darken(@color-discovery, 45%);
-@color-discovery-bg-darkest: darken(@color-discovery, 60%);
+@color-discovery-dark: darken(#ace3d1, 20%);
+@color-discovery-dark2: darken(#ace3d1, 35%);
+@color-discovery-dark3: darken(#ace3d1, 50%);
+@color-discovery-dark4: darken(#ace3d1, 65%);
 
 @color-text: white;
 
@@ -177,6 +177,10 @@
         clear: both;
         visibility: hidden;
     }
+}
+
+.bold {
+    font-weight: bold;
 }
 
 /*------------------------------------------------------
@@ -505,17 +509,22 @@ pre {
 
     #tabList {
         float: left;
+        margin-bottom: 0.4em;
 
         li {
             font-weight: bold;
             .pipe-separators;
         }
     }
+}
 
-    #tabButtons {
-        float: right;
-        text-align: right;
-        overflow: auto;
+#buyButtons {
+    padding-left: 0px;
+    li {
+        padding: 0;
+        margin: 0;
+        list-style-type: none;
+        display: inline;
     }
 }
 
@@ -556,7 +565,7 @@ pre {
                 // background: #135;
                 background: var(--color-dark);
                 cursor: pointer;
-                user-select: none;
+                .no-select();
             }
         }
     }
@@ -603,7 +612,7 @@ pre {
 
     .discovery {
         color: @color-discovery;
-        text-shadow: 0 0 0.8em @color-discovery-bg;
+        text-shadow: 0 0 0.8em @color-discovery-dark;
     }
 }
 
@@ -688,19 +697,19 @@ button.newlyDiscovered {
         a {
             &:link {
                 color: @color-discovery;
-                text-shadow: 0 0 0.8em @color-discovery-bg;
+                text-shadow: 0 0 0.8em @color-discovery-dark;
             }
             &:visited {
                 color: @color-discovery;
-                text-shadow: 0 0 0.8em @color-discovery-bg;
+                text-shadow: 0 0 0.8em @color-discovery-dark;
             }
             &:hover {
                 color: lighten(@color-discovery, 10%);
-                text-shadow: 0 0 0.8em lighten(@color-discovery-bg, 10%);
+                text-shadow: 0 0 0.8em lighten(@color-discovery-dark, 10%);
             }
             &:active {
                 color: lighten(@color-discovery, 10%);
-                text-shadow: 0 0 0.8em lighten(@color-discovery-bg, 10%);
+                text-shadow: 0 0 0.8em lighten(@color-discovery-dark, 10%);
             }
         }
     }
@@ -737,6 +746,11 @@ button.newlyDiscovered {
         font-size: 0.9em;
         padding: 0.4em;
     }
+}
+
+#statsUpperContainer {
+    width: 100%;
+    .statsInnerContainer;
 }
 
 #statsLeftContainer {
@@ -836,6 +850,10 @@ button.newlyDiscovered {
         margin: auto;
         width: 35%;
         text-shadow: 0px 0px 2px #000000;
+    }
+
+    #buyButtons {
+        padding-left: 0px;
     }
 }
 
@@ -1025,6 +1043,13 @@ button {
     .click-passthrough;
 }
 
+.largeDesc {
+    font-size: 125%;
+    color: var(--color-lighter);
+    filter: brightness(130%);
+    .click-passthrough;
+}
+
 .copyrightNotice {
     .no-select;
     // In Chrome, rendering error makes copyright notice be in front
@@ -1142,7 +1167,11 @@ button {
     }
 
     .medDesc {
-        color: lighten(@color-discovery-bg-dark, 30%);
+        color: lighten(@color-discovery-dark2, 30%);
+    }
+
+    .largeDesc {
+        color: lighten(@color-discovery-dark2, 30%);
     }
 
     .smallDesc {
@@ -1151,14 +1180,14 @@ button {
 }
 
 .gatewayButton {
-    background-color: @color-discovery-bg-dark;
+    background-color: @color-discovery-dark2;
     border-color: @color-discovery;
     text-shadow: 0 0 0.5em lighten(@color-discovery, 5%);
     max-width: 16em;
 
     div {
-        background-color: @color-discovery-bg;
-        .box-shadow(0, 0, 3px, 3px, @color-discovery-bg);
+        background-color: @color-discovery-dark;
+        .box-shadow(0, 0, 3px, 3px, @color-discovery-dark);
     }
 
     &:hover {
@@ -1168,62 +1197,63 @@ button {
     }
 
     &:active {
-        background-color: @color-discovery-bg-darker;
-        color: @color-discovery-bg;
-        .box-shadow-inset(0px, 3px, 7px, 7px, @color-discovery-bg-darker);
+        background-color: @color-discovery-dark3;
+        color: @color-discovery-dark;
+        .box-shadow-inset(0px, 3px, 7px, 7px, @color-discovery-dark3);
 
         .medDesc {
             color: darken(@color-discovery, 10%);
         }
 
         div {
-            background-color: @color-discovery-bg-darker;
+            background-color: @color-discovery-dark3;
             .clear-box-shadow();
         }
     }
 
     &.disabled {
-        background-color: @color-discovery-bg-darkest;
-        color: lighten(@color-discovery-bg-darker, 10%);
-        border-color: lighten(@color-discovery-bg-darker, 10%);
+        background-color: @color-discovery-dark4;
+        color: lighten(@color-discovery-dark3, 10%);
+        border-color: lighten(@color-discovery-dark3, 10%);
 
         .medDesc {
-            color: darken(@color-discovery-bg, 15%);
+            color: darken(@color-discovery-dark, 15%);
         }
 
         div {
-            background-color: @color-discovery-bg-darkest;
+            background-color: @color-discovery-dark4;
             .clear-box-shadow();
         }
     }
 }
 
-.gateway button {
-    .gatewayButton();
-}
-
+.gateway button,
 button.gateway {
     .gatewayButton();
 }
 
 #pane.gateway {
     .border-radius(3em);
-    background-color: @color-discovery-bg-darker;
-    .box-shadow(0, 0, 2em, 2em, @color-discovery-bg-darker);
+    background-color: @color-discovery-dark3;
+    .box-shadow(0, 0, 2em, 2em, @color-discovery-dark3);
     border: none;
 
-    #paneHeaderEnd {
-        border-bottom: none; //0.1em solid @color-discovery-bg-dark;
+    #paneHeaderEnd,
+    .paneContentDiv {
+        border-bottom: none;
     }
 
-    .paneContentDiv {
-        border-bottom: none; //0.1em solid @color-discovery-bg-dark;
+    #treeCanvas {
+        .border-radius(10px);
+        .box-shadow(0, 0, 5px, 5px, @color-discovery);
+        width: 800px;
+        height: 600px;
     }
 }
 
 #overlay.gateway {
     .opacity(1);
-    background-color: @color-discovery-bg-darkest;
+    background-color: @color-discovery-dark4;
 }
 
 .gateway .essenceCount {
@@ -1254,6 +1284,7 @@ button.gateway {
 .gatewayPropertyList {
     list-style-type: none;
     padding-left: 0;
+    text-shadow: 0 0 0.6em black;
     li {
         padding-left: 0;
     }
@@ -1266,37 +1297,37 @@ button.gateway {
 }
 
 .gateway ::selection {
-    background-color: @color-discovery-bg-darkest;
+    background-color: @color-discovery-dark4;
 }
 
 .gateway ::-moz-selection {
-    background-color: @color-discovery-bg-darkest;
+    background-color: @color-discovery-dark4;
 }
 
-#artifactList {
+#aspectList {
     margin: 0.5em auto;
 }
 
-.artifactDiv {
+.aspectDiv {
     display: inline-block;
     vertical-align: middle;
 
     .border-radius(0.5em);
-    background-color: @color-discovery-bg-darker;
-    .box-shadow(0, 0, 0.5em, 0.5em, @color-discovery-bg-darker);
+    background-color: @color-discovery-dark3;
+    .box-shadow(0, 0, 0.5em, 0.5em, @color-discovery-dark3);
     padding: 0.2em;
     margin: 1.5em;
     max-width: 14em;
 
     .gatewayButton {
-        .box-shadow(0, 0, 3px, 3px, @color-discovery-bg);
+        .box-shadow(0, 0, 3px, 3px, @color-discovery-dark);
     }
 }
 
 .planetDisplay {
     .border-radius(50px);
-    background-color: @color-discovery-bg;
-    .box-shadow(0, 0, 3px, 3px, @color-discovery-bg);
+    background-color: @color-discovery-dark;
+    .box-shadow(0, 0, 3px, 3px, @color-discovery-dark);
     margin: 0 auto;
 }
 
@@ -1341,7 +1372,7 @@ button.planetButton {
     padding-bottom: 12px;
     min-width: 200px;
     position: fixed;
-    z-index: 1;
+    z-index: 12;
     opacity: 1;
     transition: opacity 0.3s;
     text-shadow: 0px 0px 3px #000000;
@@ -1362,6 +1393,16 @@ button.planetButton {
 
 .forIncomeTable {
     width: auto;
+}
+
+.forAspectTree {
+    width: 300px;
+    background-color: @color-discovery-dark3;
+    border-color: @color-discovery-dark2;
+    &Unpurchased {
+        background-color: @color-discovery-dark4;
+        border-color: @color-discovery-dark3;
+    }
 }
 
 .collapser {
@@ -1385,6 +1426,12 @@ button.planetButton {
 
         &.newlyDiscovered {
             max-width: 12em;
+        }
+    }
+
+    #buyButtons {
+        button {
+            margin: 0 2px 3px;
         }
     }
 }

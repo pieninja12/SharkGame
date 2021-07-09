@@ -65,6 +65,16 @@ $.extend(SharkGame, {
         "League of Lobsters",
         "Eel Team Six",
         "Dungeons And Dolphins",
+        "Gameshark",
+        "Sharkiplier Plays",
+        "Five Nights in Frigid",
+        "The Shark of Wall Street",
+        ":the shark game:",
+        "Sharkware Edition",
+        "Help Wanted",
+        "NOT FINISHED",
+        "Deluxe",
+        "doo doo do-do do-do",
     ],
     GAME_NAME: null,
     ACTUAL_GAME_NAME: "Shark Game",
@@ -83,6 +93,7 @@ $.extend(SharkGame, {
     timestampGameStart: false,
     timestampRunStart: false,
     timestampRunEnd: false,
+    timestampSimulated: false,
 
     sidebarHidden: true,
     paneGenerated: false,
@@ -136,9 +147,9 @@ $.extend(SharkGame, {
         "He has a rarely updated <a href='https://twitter.com/Cirrial'>Twitter</a> though.</p>" +
         "<p>Additional code and credit help provided by Dylan and Sam Red.<br/>" +
         "<span class='smallDesc'>Dylan is also graciously hosting the original game.</span></p>" +
-        "<br><p><a href='https://github.com/spencers145/SharkGame'>NEW FRONTIERS</a> created by base4/spencers145,<br/>" +
-        "with spritework help from <a href='https://twitter.com/vhs_static'>@vhs_static</a> and friends,<br/>" +
-        "and with a little help from <a href='https://github.com/stampyzfanz'>Ixbixbam</a>.<br/>" +
+        "<br><p><a href='https://github.com/spencers145/SharkGame'>NEW FRONTIERS</a> created by base4/spencers145.<br/>" +
+        "Art and sprite contributions by Jay, and <a href='https://twitter.com/vhs_static'>@vhs_static</a> and friends.<br/>" +
+        "Additional help from <a href='https://github.com/stampyzfanz'>Ixbixbam</a>.<br/>" +
         "<span class='smallDesc'>Ixbix's games at his little corner of the internet are </span><a href='https://stampyzfanz.github.io/games'>here</a><span class='smallDesc'>.</span><br/>" +
         '<span style="color: rgba(0,0,0,0);">With some help by <a href="https://github.com/Toby222" style="color: rgba(0,0,0,0);">Toby</a></span><br/>',
 
@@ -171,9 +182,9 @@ $.extend(SharkGame, {
 
     notice:
         "<p>Welcome to the open <b>alpha</b> of v0.2 for New Frontiers.</p>" +
-        "<p>v0.2 is a total rework.<br/>Currently, only two worlds (besides starter) are playable.<br><b>Things will be missing.</b> New stuff will be added.</p>" +
+        "<p>v0.2 is a total rework.<br/>Right now only three worlds (besides starter) are playable.<br><b>Things will be missing.</b> New stuff will be added.</p>" +
         "<p>To give feedback or contribute, check out our <a href='https://discord.gg/eYqApFkFPY'>Discord</a>.</p>" +
-        "<p>To play the stable version (with all planets), visit <a href='https://spencers145.github.io/SharkGame/'>this link</a>.</p>",
+        "<p>To play the stable (OUTDATED) version (with all planets), visit <a href='https://spencers145.github.io/SharkGame/'>this link</a>.</p>",
 
     spriteIconPath: "img/sharksprites.png",
     spriteHomeEventPath: "img/sharkeventsprites.png",
@@ -211,6 +222,41 @@ $.extend(SharkGame, {
         color = String(color).replace(/[^0-9a-f]/gi, "");
         return Math.max(parseInt(color.substr(0, 2), 16), parseInt(color.substr(2, 2), 16), parseInt(color.substr(4, 2), 16));
     },
+    getRelativeLuminance(color) {
+        color = String(color).replace(/[^0-9a-f]/gi, "");
+        let red = parseInt(color.substr(0, 2), 16);
+        let green = parseInt(color.substr(2, 2), 16);
+        let blue = parseInt(color.substr(4, 2), 16);
+        red = red / 255;
+        green = green / 255;
+        blue = blue / 255;
+        let lum = 0;
+        _.each([red, green, blue], (piece, index) => {
+            if (piece <= 0.03928) {
+                piece = piece / 12.92;
+            } else {
+                piece = ((piece + 0.055) / 1.055) ** 2.4;
+            }
+            lum += piece * [0.2126, 0.7152, 0.0722][index];
+        });
+        return lum;
+    },
+    correctLuminance(color, luminance) {
+        color = String(color).replace(/[^0-9a-f]/gi, "");
+        let red = parseInt(color.substr(0, 2), 16);
+        let green = parseInt(color.substr(2, 2), 16);
+        let blue = parseInt(color.substr(4, 2), 16);
+        red = red / 255;
+        green = green / 255;
+        blue = blue / 255;
+        const varA = 1.075 * (0.2126 * red ** 2 + 0.7152 * green ** 2 + 0.0722 * blue ** 2);
+        const varB = -0.075 * (0.2126 * red + 0.7152 * green + 0.0722 * blue);
+        const ratio = Math.max((-varB + Math.sqrt(varB ** 2 + 4 * varA * luminance)) / (2 * varA), 0);
+        red = parseInt(Math.min(255, 255 * red * ratio).toFixed(0)).toString(16);
+        green = parseInt(Math.min(255, 255 * green * ratio).toFixed(0)).toString(16);
+        blue = parseInt(Math.min(255, 255 * blue * ratio).toFixed(0)).toString(16);
+        return "#" + red + green + blue;
+    },
     convertColorString(color) {
         const colors = color
             .substring(4)
@@ -222,9 +268,27 @@ $.extend(SharkGame, {
         }
         return colorstring;
     },
+    getBrightColor(color) {
+        color = String(color).replace(/[^0-9a-f]/gi, "");
+        let red = parseInt(color.substr(0, 2), 16);
+        let green = parseInt(color.substr(2, 2), 16);
+        let blue = parseInt(color.substr(4, 2), 16);
+        red = red / 255;
+        green = green / 255;
+        blue = blue / 255;
+        const most = Math.max(red, green, blue);
+        red = parseInt((255 * (1 / most) * red).toFixed(0)).toString(16);
+        green = parseInt((255 * (1 / most) * green).toFixed(0)).toString(16);
+        blue = parseInt((255 * (1 / most) * blue).toFixed(0)).toString(16);
+        return "#" + red + green + blue;
+    },
     getElementColor(id, propertyName) {
         const color = getComputedStyle(document.getElementById(id)).getPropertyValue(propertyName);
         return SharkGame.convertColorString(color);
+    },
+    /** @param {string} string */
+    boldString(string) {
+        return `<span class='bold'>${string}</span>`;
     },
     getImageIconHTML(imagePath, width, height) {
         if (!imagePath) {
@@ -473,9 +537,10 @@ SharkGame.Main = {
     },
 
     // also functions as a reset
-    init() {
+    init(foregoLoad) {
         const now = _.now();
         SharkGame.before = now;
+        SharkGame.timestampSimulated = now;
         if (SharkGame.GAME_NAME === null) {
             SharkGame.GAME_NAME = SharkGame.choose(SharkGame.GAME_NAMES);
             document.title = SharkGame.ACTUAL_GAME_NAME + ": " + SharkGame.GAME_NAME;
@@ -514,7 +579,9 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         SharkGame.World.apply();
 
         SharkGame.Gateway.init();
-        SharkGame.Gateway.applyArtifacts(); // if there's any effects to carry over from a previous run
+
+        // generate requiredBy entries
+        SharkGame.AspectTree.init();
 
         // initialise tabs
         SharkGame.Home.init();
@@ -544,13 +611,16 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         });
 
         // load save game data if present
-        if (SharkGame.Save.savedGameExists()) {
+        if (SharkGame.Save.savedGameExists() && !foregoLoad) {
             try {
                 SharkGame.Save.loadGame();
                 SharkGame.Log.addMessage("Loaded game.");
             } catch (err) {
                 SharkGame.Log.addError(err);
             }
+        } else {
+            SharkGame.AspectTree.applyAspects();
+            SharkGame.EventHandler.init();
         }
 
         // rename a game option if this is a first time run
@@ -572,6 +642,10 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
 
         // apply tick settings
         main.applyFramerate();
+
+        // add the hidden world resource
+        res.setResource("world", 1);
+        res.setTotalResource("world", 1);
 
         if (main.autosaveHandler === -1) {
             main.autosaveHandler = setInterval(main.autosave, SharkGame.Settings.current.autosaveFrequency * 60000);
@@ -596,10 +670,9 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         if (SharkGame.cheatsAndDebug.stop) {
             return;
         }
-        if (SharkGame.gameOver) {
-            // tick gateway stuff
-            gateway.update();
-        } else {
+        if (!SharkGame.gameOver) {
+            SharkGame.EventHandler.handleEventTick("beforeTick");
+
             // tick main game stuff
             const now = _.now();
             const elapsedTime = now - SharkGame.before;
@@ -622,6 +695,8 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
             main.checkTabUnlocks();
 
             SharkGame.before = now;
+
+            SharkGame.EventHandler.handleEventTick("afterTick");
         }
 
         //see if resource table tooltip needs updating
@@ -667,9 +742,9 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         });
     },
 
-    processSimTime(numberOfSeconds) {
+    processSimTime(numberOfSeconds, load = false) {
         // income calculation
-        res.processIncomes(numberOfSeconds);
+        res.processIncomes(numberOfSeconds, false, load);
     },
 
     autosave() {
@@ -727,10 +802,9 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         const content = $("#content");
 
         content.empty();
-        content.append('<div id="contentMenu"><ul id="tabList"></ul><ul id="tabButtons"></ul></div><div id="tabBorder" class="clear-fix"></div>');
+        content.append('<div id="contentMenu"><ul id="tabList"></ul></div><div id="tabBorder" class="clear-fix"></div>');
 
         main.createTabNavigation();
-        main.createBuyButtons();
 
         // set up tab specific stuff
         const tab = tabs[tabs.current];
@@ -740,7 +814,6 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
 
     createTabMenu() {
         main.createTabNavigation();
-        main.createBuyButtons();
     },
 
     createTabNavigation() {
@@ -782,10 +855,24 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         }
     },
 
-    createBuyButtons(customLabel) {
+    createBuyButtons(customLabel, addToWhere, appendOrPrepend) {
+        if (!addToWhere) {
+            SharkGame.Log.addError("Attempted to create buy buttons without specifying what to do with them.");
+        }
+
         // add buy buttons
-        const buttonList = $("#tabButtons");
-        buttonList.empty();
+        const buttonList = $("<ul>").attr("id", "buyButtons");
+        switch (appendOrPrepend) {
+            case "append":
+                addToWhere.append(buttonList);
+                break;
+            case "prepend":
+                addToWhere.prepend(buttonList);
+                break;
+            default:
+                SharkGame.Log.addError("Attempted to create buy buttons without specifying whether to append or prepend.");
+                return;
+        }
         _.each(SharkGame.Settings.buyAmount.options, (amount) => {
             const disableButton = amount === SharkGame.Settings.current.buyAmount;
             buttonList.append(
@@ -1070,26 +1157,27 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
             main.hidePane();
 
             // copy over all special category resources
-            // artifacts are preserved automatically within gateway file
-            const backup = {};
+            // aspects are preserved automatically within gateway file
+            const backup = { resources: {} };
             _.each(SharkGame.ResourceCategories.special.resources, (resourceName) => {
-                backup[resourceName] = {
+                backup.resources[resourceName] = {
                     amount: res.getResource(resourceName),
                     totalAmount: res.getTotalResource(resourceName),
                 };
             });
+            backup.completedWorlds = SharkGame.Gateway.completedWorlds;
 
-            SharkGame.Save.deleteSave(); // otherwise it will be loaded during main init and fuck up everything!!
-            main.init();
+            SharkGame.timestampRunStart = _.now();
+            main.init(true);
             SharkGame.Log.addMessage(world.getWorldEntryMessage());
 
             // restore special resources
-            $.each(backup, (resourceName, resourceData) => {
+            $.each(backup.resources, (resourceName, resourceData) => {
                 res.setResource(resourceName, resourceData.amount);
                 res.setTotalResource(resourceName, resourceData.totalAmount);
             });
+            SharkGame.Gateway.completedWorlds = backup.completedWorlds;
 
-            SharkGame.timestampRunStart = _.now();
             try {
                 SharkGame.Save.saveGame();
                 SharkGame.Log.addMessage("Game saved.");
@@ -1252,6 +1340,17 @@ SharkGame.FunFacts = [
 ];
 
 SharkGame.Changelog = {
+    "<a href='https://github.com/spencers145/SharkGame'>New Frontiers</a> 0.2 patch 20210709a": [
+        "Added the Frigid worldtype.",
+        "Replaced the Artifacts system with the Aspects system.",
+        "Tweaked Haven.",
+        "Tweaked UI colors.",
+        "Grotto now shows how the world affects resources.",
+        "Moved UI elements around to make the game not freak out on smaller screens.",
+        "Moved buy amount buttons closer to the places you'll need them, they're not in the tab list anymore!",
+        "Added 'bright' text color mode, screws up some colors but makes colored text easier to read.",
+        "Added auto color-visibility adjuster. Tries to change the color of text if it would be hard to read on a certain background.",
+    ],
     "<a href='https://github.com/spencers145/SharkGame'>New Frontiers</a> 0.2 patch 20210610a": [
         "Fixed bug where haven had no essence. Oops.",
         "Changed home messages a little.",

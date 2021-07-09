@@ -90,7 +90,7 @@ SharkGame.Settings = {
     },
 
     sidebarWidth: {
-        defaultSetting: "25%",
+        defaultSetting: "30%",
         name: "Sidebar Width",
         desc: "How much screen space the sidebar should take.",
         category: "LAYOUT",
@@ -108,11 +108,11 @@ SharkGame.Settings = {
     // APPEARANCE
 
     colorCosts: {
-        defaultSetting: true,
+        defaultSetting: "color",
         name: "Color Resource Names",
-        desc: "Whether to color names of resources.",
+        desc: "How to color names of resources.",
         category: "APPEARANCE",
-        options: [true, false],
+        options: ["color", "bright", "none"],
         onChange() {
             res.rebuildTable = true;
             stats.recreateIncomeTable = true;
