@@ -515,6 +515,27 @@ pre {
             font-weight: bold;
             .pipe-separators;
         }
+
+        .newTab {
+            a {
+                &:link {
+                    color: @color-discovery;
+                    text-shadow: 0 0 0.8em @color-discovery-dark;
+                }
+                &:visited {
+                    color: @color-discovery;
+                    text-shadow: 0 0 0.8em @color-discovery-dark;
+                }
+                &:hover {
+                    color: lighten(@color-discovery, 10%);
+                    text-shadow: 0 0 0.8em lighten(@color-discovery-dark, 10%);
+                }
+                &:active {
+                    color: lighten(@color-discovery, 10%);
+                    text-shadow: 0 0 0.8em lighten(@color-discovery-dark, 10%);
+                }
+            }
+        }
     }
 }
 
@@ -613,6 +634,11 @@ pre {
     .discovery {
         color: @color-discovery;
         text-shadow: 0 0 0.8em @color-discovery-dark;
+    }
+
+    #messageList {
+        overflow-y: hidden;
+        max-height: 400pt;
     }
 }
 
@@ -807,6 +833,8 @@ button.newlyDiscovered {
         list-style-type: square;
         padding: 0;
         margin: 0;
+        max-height: 600pt;
+        overflow-y: scroll;
     }
 
     li {
@@ -1023,6 +1051,14 @@ button {
     width: 100%;
     height: 100%;
     z-index: 10;
+}
+
+.pointy {
+    cursor: pointer;
+}
+
+.littleGeneralText {
+    font-size: 10pt;
 }
 
 .smallDesc {

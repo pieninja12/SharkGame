@@ -32,7 +32,7 @@ SharkGame.Save = {
 
         $.each(SharkGame.Tabs, (tabId, tab) => {
             if (tabId !== "current") {
-                saveData.tabs[tabId] = tab.discovered;
+                saveData.tabs[tabId] = [tab.discovered, tab.seen];
             } else {
                 saveData.tabs.current = tab;
             }
@@ -123,7 +123,7 @@ SharkGame.Save = {
                     saveData.saveVersion = i;
                 }
                 // let player know update went fine
-                SharkGame.Log.addMessage("Updated save data from v " + saveData.version + " to " + SharkGame.VERSION + ".");
+                log.addMessage("Updated save data from v " + saveData.version + " to " + SharkGame.VERSION + ".");
             }
 
             const currTimestamp = _.now();
@@ -189,11 +189,24 @@ SharkGame.Save = {
                 gateway.markWorldCompleted(worldType);
             });
 
-            $.each(saveData.tabs, (tabName, discovered) => {
-                if (_.has(SharkGame.Tabs, tabName) && tabName !== "current") {
-                    SharkGame.Tabs[tabName].discovered = discovered;
+            if (saveData.tabs && saveData.tabs.home) {
+                if (typeof saveData.tabs.home === "object") {
+                    $.each(saveData.tabs, (tabName, discoveryArray) => {
+                        if (_.has(SharkGame.Tabs, tabName) && tabName !== "current") {
+                            SharkGame.Tabs[tabName].discovered = discoveryArray[0];
+                            SharkGame.Tabs[tabName].seen = discoveryArray[1];
+                        }
+                    });
+                } else {
+                    $.each(saveData.tabs, (tabName, discovered) => {
+                        if (_.has(SharkGame.Tabs, tabName) && tabName !== "current") {
+                            SharkGame.Tabs[tabName].discovered = discovered;
+                            SharkGame.Tabs[tabName].seen = true;
+                        }
+                    });
                 }
-            });
+            }
+
             if (saveData.tabs.current) {
                 SharkGame.Tabs.current = saveData.tabs.current;
             }
@@ -280,7 +293,7 @@ SharkGame.Save = {
                         notification +=
                             (numHours === 1 ? "an" : numHours) + " hour" + SharkGame.plural(numHours) + " since you were seen around here!";
                     }
-                    SharkGame.Log.addMessage(notification);
+                    log.addMessage(notification);
                 }
             }
         } else {
@@ -293,10 +306,10 @@ SharkGame.Save = {
     importData(data) {
         // load the game from this save data string
         try {
-            SharkGame.Log.clearMessages(false);
+            log.clearMessages(false);
             SharkGame.Save.loadGame(data);
         } catch (err) {
-            SharkGame.Log.addError(err);
+            log.addError(err);
         }
         // refresh current tab
         main.setUpTab();
@@ -309,7 +322,7 @@ SharkGame.Save = {
         try {
             saveData = SharkGame.Save.saveGame();
         } catch (err) {
-            SharkGame.Log.addError(err);
+            log.addError(err);
         }
         // check if save isn't encoded
         if (saveData.substring(0, 2) !== "<~") {
@@ -331,7 +344,7 @@ SharkGame.Save = {
         localStorage.setItem(SharkGame.Save.saveFileName + "Backup", localStorage.getItem(SharkGame.Save.saveFileName));
         SharkGame.Save.deleteSave();
         SharkGame.Save.importData("{}");
-        SharkGame.Log.clearMessages(false);
+        log.clearMessages(false);
         SharkGame.Main.init();
     },
 

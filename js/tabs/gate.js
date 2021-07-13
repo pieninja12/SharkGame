@@ -2,6 +2,7 @@
 SharkGame.Gate = {
     tabId: "gate",
     tabDiscovered: false,
+    tabSeen: false,
     tabName: "Strange Gate",
     tabBg: "img/bg/bg-gate.png",
 
@@ -29,13 +30,7 @@ SharkGame.Gate = {
     init() {
         const gate = SharkGame.Gate;
         // register tab
-        SharkGame.Tabs[gate.tabId] = {
-            id: gate.tabId,
-            name: gate.tabName,
-            discovered: gate.tabDiscovered,
-            discoverReq: gate.discoverReq,
-            code: gate,
-        };
+        main.registerTab(this);
         gate.opened = false;
     },
 
@@ -143,7 +138,7 @@ SharkGame.Gate = {
 
         // if there are no upgrades needed, then that implies that there are no gate requirements
         // send an error to the log and return a debug message
-        SharkGame.Log.addError("No gate requirements found.");
+        log.addError("No gate requirements found.");
         return "This is a failsafe message. Something has gone wrong internally.";
     },
 

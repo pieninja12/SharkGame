@@ -147,7 +147,7 @@ SharkGame.AspectTree = {
         const button = tree.getButtonUnderMouse(event);
         const tooltipBox = $("#tooltipbox");
         if (button === undefined) {
-            context.canvas.style.cursor = "default";
+            context.canvas.style.cursor = "grab";
             tooltipBox.empty().removeClass("forAspectTree forAspectTreeUnpurchased");
         } else {
             context.canvas.style.cursor = "pointer";
@@ -365,7 +365,7 @@ SharkGame.AspectTree = {
             }
             const sprite = SharkGame.Sprites[icon];
             if (sprite === undefined) {
-                SharkGame.Log.addError(new Error(`Unknown sprite '${icon}' in prestige tree.`));
+                log.addError(new Error(`Unknown sprite '${icon}' in prestige tree.`));
                 return;
             }
             context.drawImage(

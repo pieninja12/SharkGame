@@ -105,7 +105,9 @@ $.extend(SharkGame, {
         pause: false,
         stop: false,
         speed: 1,
-        chunky: false,
+        upgradePriceModifier: 1,
+        actionPriceModifier: 1,
+        noNumberBeautifying: false,
         cycling: false,
         cycleStyles(time = 2000) {
             if (cad.cycling) return;
@@ -333,9 +335,9 @@ SharkGame.TitleBar = {
             try {
                 SharkGame.Save.saveGame();
             } catch (err) {
-                SharkGame.Log.addError(err);
+                log.addError(err);
             }
-            SharkGame.Log.addMessage("Saved game.");
+            log.addMessage("Saved game.");
         },
     },
 
@@ -420,6 +422,10 @@ SharkGame.Main = {
     autosaveHandler: -1,
 
     beautify(number, suppressDecimals, toPlaces) {
+        if (cad.noNumberBeautifying) {
+            return number.toString();
+        }
+
         let formatted;
 
         let negative = false;
@@ -485,6 +491,10 @@ SharkGame.Main = {
     },
 
     beautifyIncome(number, also = "") {
+        if (cad.noNumberBeautifying) {
+            return number.toString();
+        }
+
         const abs = Math.abs(number);
         if (abs >= 0.001) {
             number = main.beautify(number, false, 2);
@@ -614,9 +624,9 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         if (SharkGame.Save.savedGameExists() && !foregoLoad) {
             try {
                 SharkGame.Save.loadGame();
-                SharkGame.Log.addMessage("Loaded game.");
+                log.addMessage("Loaded game.");
             } catch (err) {
-                SharkGame.Log.addError(err);
+                log.addError(err);
             }
         } else {
             SharkGame.AspectTree.applyAspects();
@@ -737,7 +747,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
             if (reqsMet) {
                 // unlock tab!
                 main.discoverTab(tabName);
-                SharkGame.Log.addDiscovery("Discovered " + tab.name + "!");
+                log.addDiscovery("Discovered " + tab.name + "!");
             }
         });
     },
@@ -750,9 +760,9 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
     autosave() {
         try {
             SharkGame.Save.saveGame();
-            SharkGame.Log.addMessage("Autosaved.");
+            log.addMessage("Autosaved.");
         } catch (err) {
-            SharkGame.Log.addError(err);
+            log.addError(err);
         }
     },
 
@@ -766,9 +776,9 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
                             SharkGame.Save.saveGame();
                             history.go(0);
                         } catch (err) {
-                            SharkGame.Log.addError(err);
+                            log.addError(err);
                             console.error(err);
-                            SharkGame.Log.addMessage("Something went wrong while saving.");
+                            log.addMessage("Something went wrong while saving.");
                         }
                     });
             }
@@ -816,6 +826,16 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         main.createTabNavigation();
     },
 
+    registerTab(tab) {
+        SharkGame.Tabs[tab.tabId] = {
+            id: tab.tabId,
+            name: tab.tabName,
+            discovered: tab.tabDiscovered,
+            code: tab,
+            discoverReq: tab.discoverReq || {},
+        };
+    },
+
     createTabNavigation() {
         const tabs = SharkGame.Tabs;
         const tabList = $("#tabList");
@@ -848,6 +868,9 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
                                     main.changeTab(tab);
                                 })
                         );
+                        if (!tabData.seen) {
+                            tabListItem.addClass("newTab");
+                        }
                     }
                     tabList.append(tabListItem);
                 }
@@ -857,7 +880,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
 
     createBuyButtons(customLabel, addToWhere, appendOrPrepend) {
         if (!addToWhere) {
-            SharkGame.Log.addError("Attempted to create buy buttons without specifying what to do with them.");
+            log.addError("Attempted to create buy buttons without specifying what to do with them.");
         }
 
         // add buy buttons
@@ -870,7 +893,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
                 addToWhere.prepend(buttonList);
                 break;
             default:
-                SharkGame.Log.addError("Attempted to create buy buttons without specifying whether to append or prepend.");
+                log.addError("Attempted to create buy buttons without specifying whether to append or prepend.");
                 return;
         }
         _.each(SharkGame.Settings.buyAmount.options, (amount) => {
@@ -943,6 +966,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
 
     changeTab(tab) {
         SharkGame.Tabs.current = tab;
+        SharkGame.Tabs[tab].seen = true;
         main.setUpTab();
     },
 
@@ -955,7 +979,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
     showSidebarIfNeeded() {
         // if we have any non-zero resources, show sidebar
         // if we have any log entries, show sidebar
-        if (res.haveAnyResources() || SharkGame.Log.haveAnyMessages()) {
+        if (res.haveAnyResources() || log.haveAnyMessages()) {
             // show sidebar
             if (SharkGame.Settings.current.showAnimations) {
                 $("#sidebar").show("500");
@@ -1026,7 +1050,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         let row = $("<tr>");
         row.append(
             $("<td>").html(
-                "Import/Export Save:<br/><span class='smallDesc'>(You should probably save first!) Import or export save as text. Keep it safe!</span>"
+                "Import/Export Save:<br/><span class='smallDesc'>(Turn your save into text for other people to load, or as a backup.)</span>"
             )
         );
         row.append(
@@ -1039,7 +1063,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
                         const importText = $("#importExportField").val();
                         if (importText === "") {
                             SharkGame.Main.hidePane();
-                            SharkGame.Log.addError("You need to paste something in first!");
+                            log.addError("You need to paste something in first!");
                         } else if (confirm("Are you absolutely sure? This will override your current save.")) {
                             SharkGame.Save.importData(importText);
                         }
@@ -1065,7 +1089,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         // add save wipe
         row = $("<tr>");
         row.append(
-            $("<td>").html("Wipe Save<br/><span class='smallDesc'>(Completely wipe your save and reset the game. COMPLETELY. FOREVER.)</span>")
+            $("<td>").html("Wipe Save:<br/><span class='smallDesc'>(Completely wipe your save and reset the game. COMPLETELY. FOREVER.)</span>")
         );
         row.append(
             $("<td>").append(
@@ -1146,7 +1170,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
     purgeGame() {
         // empty out all the containers!
         $("#status").empty();
-        SharkGame.Log.clearMessages();
+        log.clearMessages();
         $("#content").empty();
     },
 
@@ -1169,7 +1193,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
 
             SharkGame.timestampRunStart = _.now();
             main.init(true);
-            SharkGame.Log.addMessage(world.getWorldEntryMessage());
+            log.addMessage(world.getWorldEntryMessage());
 
             // restore special resources
             $.each(backup.resources, (resourceName, resourceData) => {
@@ -1180,9 +1204,9 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
 
             try {
                 SharkGame.Save.saveGame();
-                SharkGame.Log.addMessage("Game saved.");
+                log.addMessage("Game saved.");
             } catch (err) {
-                SharkGame.Log.addError(err);
+                log.addError(err);
             }
         }
     },
@@ -1208,7 +1232,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         return pane;
     },
 
-    showPane(title, contents, hideCloseButton, fadeInTime, customOpacity) {
+    showPane(title, contents, notCloseable, fadeInTime, customOpacity) {
         let pane;
 
         // GENERATE PANE IF THIS IS THE FIRST TIME
@@ -1240,7 +1264,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
             titleDiv.hide();
         } else {
             titleDiv.show();
-            if (!hideCloseButton) {
+            if (!notCloseable) {
                 // put back to left
                 titleDiv.css({ float: "left", "text-align": "left", clear: "none" });
                 titleDiv.html("<h3>" + title + "</h3>");
@@ -1250,7 +1274,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
                 titleDiv.html("<h2>" + title + "</h2>");
             }
         }
-        if (hideCloseButton) {
+        if (notCloseable) {
             closeButtonDiv.hide();
         } else {
             closeButtonDiv.show();
@@ -1266,9 +1290,16 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         } else {
             pane.show();
         }
+
+        if (!notCloseable) {
+            document.getElementById("overlay").addEventListener("click", main.hidePane);
+            overlay.addClass("pointy");
+        }
     },
 
     hidePane() {
+        document.getElementById("overlay").removeEventListener("click", main.hidePane);
+        $("#overlay").removeClass("pointy");
         $("#overlay").hide();
         $("#pane").hide();
     },
@@ -1340,6 +1371,18 @@ SharkGame.FunFacts = [
 ];
 
 SharkGame.Changelog = {
+    "<a href='https://github.com/spencers145/SharkGame'>New Frontiers</a> 0.2 patch 20210713a": [
+        "Tooltips show you how much you already own of what you're buying. Can be turned off in options.",
+        "Tooltips have their numbers scale based on how much of something you're buying. Can be turned off in options.",
+        "The key for advanced mode grotto has been enhanced.",
+        "Tabs you haven't visited yet will glow. This is on a per-world basis.",
+        "Gave scroll bars to some stuff.",
+        "Changed the order of categories in the resource table to make more sense.",
+        "You can close windows by clicking outside of them.",
+        "Options menu is less wordy.",
+        "Corrected a bunch of upgrade effect descriptions.",
+        "Minor bugfixes.",
+    ],
     "<a href='https://github.com/spencers145/SharkGame'>New Frontiers</a> 0.2 patch 20210709a": [
         "Added the Frigid worldtype.",
         "Replaced the Artifacts system with the Aspects system.",

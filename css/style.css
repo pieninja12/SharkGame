@@ -344,6 +344,22 @@ pre {
 #contentMenu #tabList li:first-child:before {
   content: none;
 }
+#contentMenu #tabList .newTab a:link {
+  color: #ace3d1;
+  text-shadow: 0 0 0.8em #60c9a7;
+}
+#contentMenu #tabList .newTab a:visited {
+  color: #ace3d1;
+  text-shadow: 0 0 0.8em #60c9a7;
+}
+#contentMenu #tabList .newTab a:hover {
+  color: #d2f0e6;
+  text-shadow: 0 0 0.8em #86d6bc;
+}
+#contentMenu #tabList .newTab a:active {
+  color: #d2f0e6;
+  text-shadow: 0 0 0.8em #86d6bc;
+}
 #buyButtons {
   padding-left: 0px;
 }
@@ -440,6 +456,10 @@ pre {
 #log .discovery {
   color: #ace3d1;
   text-shadow: 0 0 0.8em #60c9a7;
+}
+#log #messageList {
+  overflow-y: hidden;
+  max-height: 400pt;
 }
 #resource-numen {
   text-shadow: 0 0 0.3em #ffffff, 0 0 0.6em #ffffff, 0 0 0.8em #ffffff;
@@ -691,6 +711,8 @@ button.newlyDiscovered.disabled div {
   list-style-type: square;
   padding: 0;
   margin: 0;
+  max-height: 600pt;
+  overflow-y: scroll;
 }
 #upgradeList li {
   padding: 0.5em 0.5em 0.5em 0.2em;
@@ -903,6 +925,12 @@ button.disabled div {
   width: 100%;
   height: 100%;
   z-index: 10;
+}
+.pointy {
+  cursor: pointer;
+}
+.littleGeneralText {
+  font-size: 10pt;
 }
 .smallDesc {
   font-size: 80%;

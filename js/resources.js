@@ -349,7 +349,7 @@ SharkGame.Resources = {
             resourceTable.totalAmount += amount;
         }
 
-        if (prevTotalAmount < SharkGame.EPSILON) {
+        if (prevTotalAmount < SharkGame.EPSILON && amount > 0) {
             // we got a new resource
             res.rebuildTable = true;
         }
@@ -488,6 +488,11 @@ SharkGame.Resources = {
         let resourceTable = $("#resourceTable");
 
         const statusDiv = $("#status");
+        if (SharkGame.Settings.current.smallTable) {
+            resourceTable.addClass("littleGeneralText");
+        } else {
+            resourceTable.removeClass("littleGeneralText");
+        }
         // if resource table does not exist, create
         if (resourceTable.length <= 0) {
             statusDiv.prepend("<h3>Stuff</h3>");
@@ -517,10 +522,13 @@ SharkGame.Resources = {
                         .on("click", () => SharkGame.Resources.collapseResourceTableRow(categoryName));
 
                     resourceTable.append(headerRow);
-                    $.each(category.resources, (_resourceName, resourceValue) => {
-                        if (res.getTotalResource(resourceValue) > 0 || SharkGame.PlayerResources.get(resourceValue).discovered) {
+                    _.each(category.resources, (resource) => {
+                        if (
+                            res.getTotalResource(resource) > 0 ||
+                            (SharkGame.PlayerResources.get(resource).discovered && world.doesResourceExist(resource))
+                        ) {
                             if (!res.collapsedRows.has(categoryName)) {
-                                const row = res.constructResourceTableRow(resourceValue);
+                                const row = res.constructResourceTableRow(resource);
                                 resourceTable.append(row);
                             }
                             anyResourcesInTable = true;
@@ -533,7 +541,8 @@ SharkGame.Resources = {
             SharkGame.ResourceMap.forEach((_resource, resourceId) => {
                 if (
                     (res.getTotalResource(resourceId) > 0 || SharkGame.PlayerResources.get(resourceId).discovered) &&
-                    world.doesResourceExist(resourceId)
+                    world.doesResourceExist(resourceId) &&
+                    res.isCategoryVisible(SharkGame.ResourceCategories[res.getCategoryOfResource(resourceId)])
                 ) {
                     const row = res.constructResourceTableRow(resourceId);
                     resourceTable.append(row);
@@ -610,16 +619,14 @@ SharkGame.Resources = {
                 if (amount > 0) {
                     producertext += "<br>";
                     producertext +=
-                        main.beautify(res.getResource(which)).bold() +
-                        " " +
+                        (which === "world" ? "" : "<strong>" + main.beautify(res.getResource(which)) + "</strong> ") +
                         res.getResourceName(which, false, false, SharkGame.getElementColor("tooltipbox", "background-color")) +
                         "  <span class='littleTooltipText'>at</span>  " +
                         main.beautifyIncome(amount).bold();
                 } else if (amount < 0) {
                     consumertext += "<br>";
                     consumertext +=
-                        main.beautify(res.getResource(which)).bold() +
-                        " " +
+                        (which === "world" ? "" : "<strong>" + main.beautify(res.getResource(which)) + "</strong> ") +
                         res.getResourceName(which, false, false, SharkGame.getElementColor("tooltipbox", "background-color")) +
                         "  <span class='littleTooltipText'>at</span>  " +
                         main.beautifyIncome(-amount).bold();
@@ -641,6 +648,7 @@ SharkGame.Resources = {
         if (document.getElementById("tooltipbox").innerHTML !== text.replace(/'/g, '"')) {
             document.getElementById("tooltipbox").innerHTML = text;
         }
+        $("#tooltipbox").removeClass("forHomeButton").attr("current", "");
         $(".tooltip").addClass("forIncomeTable").attr("current", resourceName);
     },
 
@@ -858,9 +866,8 @@ SharkGame.Resources = {
         return product;
     },
 
-    getPurchaseAmount(resource) {
+    getPurchaseAmount(resource, owned = res.getResource(resource)) {
         const buy = main.getBuyAmount();
-        const owned = res.getResource(resource);
 
         if (buy > 0) {
             return buy;

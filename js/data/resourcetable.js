@@ -995,6 +995,11 @@ SharkGame.ResourceTable = {
             investigator: -0.005,
             technician: -0.001,
             sifter: -0.001,
+            squid: -0.001,
+            urchin: -0.001,
+            collective: -0.001,
+            extractionTeam: -0.001,
+            spawner: -0.001,
         },
         value: -100,
         forceIncome: true,
@@ -1010,8 +1015,8 @@ SharkGame.ResourceTable = {
     },
 
     world: {
-        name: "world",
-        singleName: "world",
+        name: "the world",
+        singleName: "the world",
         desc: "how are you seeing this",
         color: "#FFFFFF",
         value: 123456789,
@@ -1051,9 +1056,11 @@ SharkGame.GeneratorIncomeAffectorsOriginal = {
     ice: {
         multiply: {
             shark: -0.001,
+            ray: -0.001,
             crab: -0.001,
             scientist: -0.001,
             nurse: -0.001,
+            maker: -0.001,
             brood: -0.001,
             world: -0.00125,
         },
@@ -1100,10 +1107,26 @@ SharkGame.ResourceSpecialProperties = {
 };
 
 SharkGame.ResourceCategories = {
-    special: {
-        name: "Special",
-        disposeMessage: ["What have you done??"],
-        resources: ["numen", "essence"],
+    harmful: {
+        name: "Harmful",
+        disposeMessage: ["Oh, you'd like that, wouldn't you."],
+        resources: ["tar", "ice"],
+    },
+    scientific: {
+        name: "Science",
+        disposeMessage: [
+            "Thousands of sharkhours of research down the drain.",
+            "What possible reason are you doing this for?!",
+            "The shark academies will hear of this anti-intellectual act of barbarism!",
+            "The science advisors frantically murmur among themselves while disposing of the science.",
+            "We're getting rid of the science now! No more learning! No more progression! Just mindlessly clicking the exact same buttons we've been clicking for hours!!",
+            "Are you afraid of PROGRESS?",
+            "Ignorance is bliss.",
+        ],
+        resources: [
+            "science",
+            //"knowledge",
+        ],
     },
     frenzy: {
         name: "Frenzy",
@@ -1117,6 +1140,52 @@ SharkGame.ResourceCategories = {
             "Are you happy with what you've done?",
         ],
         resources: ["shark", "ray", "crab", "shrimp", "lobster", "dolphin", "whale", "chimaera", "octopus", "eel", "squid", "urchin"],
+    },
+    animals: {
+        name: "Animals",
+        disposeMessage: [
+            "Go free, simple creatures!",
+            "What does famine even mean, really?",
+            "We'll probably not need that or regret it or whatever.",
+            "But we need that to eat!",
+            "We didn't need all of that anyway.",
+            "Do you think the aim of the game is to make the numbers go DOWN?!",
+            "Sure hope you know what you're doing here.",
+        ],
+        resources: ["fish", "seaApple", "sponge", "jellyfish", "clam"],
+    },
+    stuff: {
+        name: "Materials",
+        disposeMessage: [
+            "The stuff is dumped in some random hole in the ocean.",
+            "We didn't need that anyway. Right? I think we didn't.",
+            "The survey sharks bite up their notes in frustration and begin counting everything all over again.",
+            "Well, someone else can deal with it now.",
+            "We didn't need all of that anyway.",
+            "Do you think the aim of the game is to make the numbers go DOWN?!",
+            "Well I hope you know what you're doing.",
+        ],
+        resources: [
+            "sand",
+            "crystal",
+            "kelp",
+            "coral",
+            "algae",
+            //"stone",
+            //"gravel",
+        ],
+    },
+    processed: {
+        name: "Processed",
+        disposeMessage: [
+            "Disposed of, very carefully, with lots of currents and plenty of distance.",
+            "Industrial waste, coming through.",
+            "This stuff is hopefully not toxic. Hopefully.",
+            "This stuff is the future! The future of awkward-to-dispose substances!",
+            "The foundation of a modern shark frenzy, perhaps, but also sort of taking up all the space.",
+            "Let's hope we don't regret it.",
+        ],
+        resources: ["sharkonium", "coralglass", "delphinium", "spronge", "ancientPart", "junk", "filter"],
     },
     breeders: {
         name: "Breeders",
@@ -1198,72 +1267,10 @@ SharkGame.ResourceCategories = {
             //"pulverizer",
         ],
     },
-    scientific: {
-        name: "Science",
-        disposeMessage: [
-            "Thousands of sharkhours of research down the drain.",
-            "What possible reason are you doing this for?!",
-            "The shark academies will hear of this anti-intellectual act of barbarism!",
-            "The science advisors frantically murmur among themselves while disposing of the science.",
-            "We're getting rid of the science now! No more learning! No more progression! Just mindlessly clicking the exact same buttons we've been clicking for hours!!",
-            "Are you afraid of PROGRESS?",
-            "Ignorance is bliss.",
-        ],
-        resources: [
-            "science",
-            //"knowledge",
-        ],
-    },
-    animals: {
-        name: "Animals",
-        disposeMessage: [
-            "Go free, simple creatures!",
-            "What does famine even mean, really?",
-            "We'll probably not need that or regret it or whatever.",
-            "But we need that to eat!",
-            "We didn't need all of that anyway.",
-            "Do you think the aim of the game is to make the numbers go DOWN?!",
-            "Sure hope you know what you're doing here.",
-        ],
-        resources: ["fish", "seaApple", "sponge", "jellyfish", "clam"],
-    },
-    stuff: {
-        name: "Materials",
-        disposeMessage: [
-            "The stuff is dumped in some random hole in the ocean.",
-            "We didn't need that anyway. Right? I think we didn't.",
-            "The survey sharks bite up their notes in frustration and begin counting everything all over again.",
-            "Well, someone else can deal with it now.",
-            "We didn't need all of that anyway.",
-            "Do you think the aim of the game is to make the numbers go DOWN?!",
-            "Well I hope you know what you're doing.",
-        ],
-        resources: [
-            "sand",
-            "crystal",
-            "kelp",
-            "coral",
-            "algae",
-            //"stone",
-            //"gravel",
-        ],
-    },
-    processed: {
-        name: "Processed",
-        disposeMessage: [
-            "Disposed of, very carefully, with lots of currents and plenty of distance.",
-            "Industrial waste, coming through.",
-            "This stuff is hopefully not toxic. Hopefully.",
-            "This stuff is the future! The future of awkward-to-dispose substances!",
-            "The foundation of a modern shark frenzy, perhaps, but also sort of taking up all the space.",
-            "Let's hope we don't regret it.",
-        ],
-        resources: ["sharkonium", "coralglass", "delphinium", "spronge", "ancientPart", "junk", "filter"],
-    },
-    harmful: {
-        name: "Harmful",
-        disposeMessage: ["Oh, you'd like that, wouldn't you."],
-        resources: ["tar", "ice"],
+    special: {
+        name: "Special",
+        disposeMessage: ["What have you done??"],
+        resources: ["numen", "essence"],
     },
     hidden: {
         name: "Hidden",

@@ -2,6 +2,7 @@
 SharkGame.Home = {
     tabId: "home",
     tabDiscovered: true,
+    tabSeen: true,
     tabName: "Home Sea",
     tabBg: "img/bg/bg-homesea.png",
 
@@ -347,14 +348,8 @@ SharkGame.Home = {
         const tabName = SharkGame.WorldTypes[world.worldType].name + " Ocean";
         home.tabName = tabName;
 
-        // register tab
-        SharkGame.Tabs[home.tabId] = {
-            id: home.tabId,
-            name: home.tabName,
-            discovered: home.tabDiscovered,
-            code: home,
-            discoverReq: [],
-        };
+        main.registerTab(this);
+
         // populate action discoveries (and reset removals)
         _.each(SharkGame.HomeActions.getActionTable(), (actionData) => {
             actionData.discovered = false;
@@ -497,7 +492,7 @@ SharkGame.Home = {
                 );
                 requirementsMet &&= _.every(extraMessage.unlock.upgrade, (upgradeId) => SharkGame.Upgrades.purchased.includes(upgradeId));
                 requirementsMet &&= _.every(extraMessage.unlock.homeAction, (actionName) => {
-                    const action = SharkGame.HomeActions.getActionTable()[actionName];
+                    const action = SharkGame.HomeActions.getActionData(SharkGame.HomeActions.getActionTable(), actionName);
                     return action.discovered && !action.newlyDiscovered;
                 });
                 return requirementsMet;
@@ -586,13 +581,13 @@ SharkGame.Home = {
         const amountToBuy = main.getBuyAmount();
 
         const button = $("#" + actionName);
-        const actionData = SharkGame.HomeActions.getActionTable()[actionName];
+        const actionData = SharkGame.HomeActions.getActionData(SharkGame.HomeActions.getActionTable(), actionName);
 
         if (actionData.removedBy) {
             if (home.shouldRemoveHomeButton(actionData)) {
                 button.remove();
-                actionData.isRemoved = true;
-                actionData.discovered = true;
+                SharkGame.HomeActions.getActionTable()[actionName].isRemoved = true;
+                SharkGame.HomeActions.getActionTable()[actionName].discovered = true;
                 return;
             }
         }
@@ -685,7 +680,7 @@ SharkGame.Home = {
 
     areActionPrereqsMet(actionName) {
         let prereqsMet = true; // assume true until proven false
-        const action = SharkGame.HomeActions.getActionTable()[actionName];
+        const action = SharkGame.HomeActions.getActionData(SharkGame.HomeActions.getActionTable(), actionName);
         if (action.unauthorized) {
             return false;
         }
@@ -766,8 +761,8 @@ SharkGame.Home = {
         // get related entry in home button table
         const button = $(this);
         if (button.hasClass("disabled")) return;
-        const buttonName = button.attr("id");
-        const action = SharkGame.HomeActions.getActionTable()[buttonName];
+        const actionName = button.attr("id");
+        const action = SharkGame.HomeActions.getActionData(SharkGame.HomeActions.getActionTable(), actionName);
         let actionCost = {};
         let amount = 0;
         if (amountToBuy < 0) {
@@ -795,7 +790,7 @@ SharkGame.Home = {
             if (action.effect.resource) {
                 res.changeManyResources(action.effect.resource);
             }
-            SharkGame.Log.addMessage(SharkGame.choose(action.outcomes));
+            log.addMessage(SharkGame.choose(action.outcomes));
         } else if (amount > 0) {
             // cost action
             // check cost, only proceed if sufficient resources (prevention against lazy cheating, god, at least cheat in the right resources)
@@ -814,16 +809,16 @@ SharkGame.Home = {
                 }
                 // print outcome to log
                 if (!action.multiOutcomes || amount === 1) {
-                    SharkGame.Log.addMessage(SharkGame.choose(action.outcomes));
+                    log.addMessage(SharkGame.choose(action.outcomes));
                 } else {
-                    SharkGame.Log.addMessage(SharkGame.choose(action.multiOutcomes));
+                    log.addMessage(SharkGame.choose(action.multiOutcomes));
                 }
             } else {
-                SharkGame.Log.addMessage("You can't afford that!");
+                log.addMessage("You can't afford that!");
             }
         }
         if (button.hasClass("newlyDiscovered")) {
-            action.newlyDiscovered = false;
+            SharkGame.HomeActions.getActionTable()[actionName].newlyDiscovered = false;
             button.removeClass("newlyDiscovered");
         }
         // disable button until next frame
@@ -838,7 +833,7 @@ SharkGame.Home = {
             const button = $(this);
             actionName = button.attr("id");
         }
-        const effects = SharkGame.HomeActions.getActionTable()[actionName].effect;
+        const effects = SharkGame.HomeActions.getActionData(SharkGame.HomeActions.getActionTable(), actionName).effect;
         const validGenerators = {};
         if (effects.resource) {
             $.each(effects.resource, (resource) => {
@@ -853,6 +848,17 @@ SharkGame.Home = {
             });
         }
 
+        let buyingHowMuch = 1;
+        if (!SharkGame.Settings.current.alwaysSingularTooltip) {
+            buyingHowMuch = res.getPurchaseAmount(
+                "doesntmatter",
+                home.getMax(SharkGame.HomeActions.getActionData(SharkGame.HomeActions.getActionTable(), actionName))
+            );
+            if (buyingHowMuch < 1) {
+                buyingHowMuch = 1;
+            }
+        }
+
         let appendedProduce = false;
         let appendedConsume = false;
         let appendedMultiply = false;
@@ -863,12 +869,12 @@ SharkGame.Home = {
             if (amount > 0) {
                 if (!appendedProduce) {
                     appendedProduce = true;
-                    text += "<span class='littleTooltipText'>PRODUCES</span><br/>";
+                    text += "<span class='littleTooltipText'>PRODUCE" + (buyingHowMuch >= 2 ? "" : "S") + "</span><br/>";
                 }
                 text +=
                     main
                         .beautifyIncome(
-                            amount,
+                            buyingHowMuch * amount,
                             " " + res.getResourceName(incomeResource, false, false, SharkGame.getElementColor("tooltipbox", "background-color"))
                         )
                         .bold() + "<br/>";
@@ -879,12 +885,12 @@ SharkGame.Home = {
             if (amount < 0) {
                 if (!appendedConsume) {
                     appendedConsume = true;
-                    text += "<span class='littleTooltipText'>CONSUMES</span><br/>";
+                    text += "<span class='littleTooltipText'>CONSUME" + (buyingHowMuch >= 2 ? "" : "S") + "</span><br/>";
                 }
                 text +=
                     main
                         .beautifyIncome(
-                            -amount,
+                            -buyingHowMuch * amount,
                             " " + res.getResourceName(incomeResource, false, false, SharkGame.getElementColor("tooltipbox", "background-color"))
                         )
                         .bold() + "<br/>";
@@ -899,9 +905,9 @@ SharkGame.Home = {
                         if (!appendedMultiply) {
                             appendedMultiply = true;
                             if (degree > 0) {
-                                text += "<span class='littleTooltipText'>INCREASES</span><br/>";
+                                text += "<span class='littleTooltipText'>INCREASE" + (buyingHowMuch >= 2 ? "" : "S") + "</span><br/>";
                             } else {
-                                text += "<span class='littleTooltipText'>DECREASES</span><br/>";
+                                text += "<span class='littleTooltipText'>DECREASE" + (buyingHowMuch >= 2 ? "" : "S") + "</span><br/>";
                             }
                         }
                         text +=
@@ -909,28 +915,30 @@ SharkGame.Home = {
                             res.getResourceName(affected, false, false, SharkGame.getElementColor("tooltipbox", "background-color")) +
                             " gains ".bold() +
                             " by " +
-                            (Math.round(degree * 100) + "%").bold() +
-                            " each<br>";
+                            (Math.round(buyingHowMuch * degree * 100) + "%").bold() +
+                            "<br>";
                     }
                     if (type === "exponentiate") {
                         if (!appendedExponentiate) {
                             appendedExponentiate = true;
                             if (degree > 1) {
-                                text += "<span class='littleTooltipText'>MULTIPLICATIVELY INCREASES</span><br/>";
+                                text +=
+                                    "<span class='littleTooltipText'>MULTIPLICATIVELY INCREASE" + (buyingHowMuch >= 2 ? "" : "S") + "</span><br/>";
                             } else if (degree < 1) {
-                                text += "<span class='littleTooltipText'>MULTIPLICATIVELY DECREASES</span><br/>";
+                                text +=
+                                    "<span class='littleTooltipText'>MULTIPLICATIVELY DECREASE" + (buyingHowMuch >= 2 ? "" : "S") + "</span><br/>";
                             } else {
                                 return true;
                             }
                         }
-                        degree = degree < 1 ? 1 - degree : degree - 1;
+                        degree = degree < 1 ? 1 - degree ** buyingHowMuch : degree ** buyingHowMuch - 1;
                         text +=
                             "all ".bold() +
                             res.getResourceName(affected, false, false, SharkGame.getElementColor("tooltipbox", "background-color")) +
                             " gains ".bold() +
                             " by " +
                             (Math.round(degree * 100) + "%").bold() +
-                            " each<br>";
+                            "<br>";
                     }
                 });
             });
@@ -941,12 +949,15 @@ SharkGame.Home = {
         }
 
         $.each(effects.resource, (resource, amount) => {
-            if (amount !== 1) {
+            if (buyingHowMuch * amount >= 2) {
                 text =
-                    main.beautify(amount).bold() +
+                    main.beautify(buyingHowMuch * amount).bold() +
                     " " +
-                    res.getResourceName(resource, false, 1, SharkGame.getElementColor("tooltipbox", "background-color")).bold() +
+                    res.getResourceName(resource, false, buyingHowMuch * amount, SharkGame.getElementColor("tooltipbox", "background-color")).bold() +
                     "<br>" +
+                    (SharkGame.Settings.current.tooltipQuantityReminders
+                        ? "<span class='medDesc littleTooltipText'>(you have " + main.beautify(res.getResource(resource)) + ")</span><br>"
+                        : "") +
                     text;
             } else {
                 const determiner = main.getDeterminer(resource);
@@ -954,6 +965,9 @@ SharkGame.Home = {
                     (determiner ? determiner + " " : "") +
                     res.getResourceName(resource, false, 1, SharkGame.getElementColor("tooltipbox", "background-color")).bold() +
                     "<br>" +
+                    (SharkGame.Settings.current.tooltipQuantityReminders
+                        ? "<span class='medDesc littleTooltipText'>(you have " + main.beautify(res.getResource(resource)) + ")</span><br>"
+                        : "") +
                     text;
             }
         });
@@ -961,6 +975,7 @@ SharkGame.Home = {
         if (document.getElementById("tooltipbox").innerHTML !== text.replace(/'/g, '"')) {
             document.getElementById("tooltipbox").innerHTML = text;
         }
+        $(".tooltip").removeClass("forIncomeTable").attr("current", "");
         $("#tooltipbox").addClass("forHomeButton").attr("current", actionName);
     },
 

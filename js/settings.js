@@ -23,7 +23,7 @@ SharkGame.Settings = {
     framerate: {
         defaultSetting: 20,
         name: "Framerate/TPS",
-        desc: "Which rate to update the game at. Lower saves power and might improve performance. Higher looks smoother.",
+        desc: "How fast to update the game.",
         category: "PERFORMANCE",
         options: [1, 2, 5, 10, 20, 30],
         onChange() {
@@ -34,7 +34,7 @@ SharkGame.Settings = {
     showAnimations: {
         defaultSetting: true,
         name: "Show Animations",
-        desc: "Whether to show animated transitions for some things.",
+        desc: "Whether to show animated transitions.",
         category: "PERFORMANCE",
         options: [true, false],
     },
@@ -44,7 +44,7 @@ SharkGame.Settings = {
     minimizedTopbar: {
         defaultSetting: true,
         name: "Minimized Title Bar",
-        desc: "Whether to minimize the title bar at the top of the game.",
+        desc: "Whether to minimize the title bar at the top.",
         category: "LAYOUT",
         options: [true, false],
         onChange() {
@@ -59,7 +59,18 @@ SharkGame.Settings = {
     groupResources: {
         defaultSetting: true,
         name: "Group Resources",
-        desc: "Whether to group resources in the table into categories.",
+        desc: "Whether to categorize resources in the table.",
+        category: "LAYOUT",
+        options: [true, false],
+        onChange() {
+            res.rebuildTable = true;
+        },
+    },
+
+    smallTable: {
+        defaultSetting: false,
+        name: "Smaller Table",
+        desc: "Whether to make the stuff table smaller.",
         category: "LAYOUT",
         options: [true, false],
         onChange() {
@@ -70,7 +81,7 @@ SharkGame.Settings = {
     buttonDisplayType: {
         defaultSetting: "pile",
         name: "Home Sea Button Display",
-        desc: "Do you want a vertical list of buttons, or a more space-saving configuration?",
+        desc: "How to arrange buttons.",
         category: "LAYOUT",
         options: ["list", "pile"],
         onChange() {
@@ -81,11 +92,11 @@ SharkGame.Settings = {
     logMessageMax: {
         defaultSetting: 15,
         name: "Max Log Messages",
-        desc: "How many messages to show before removing old ones.",
+        desc: "Max number of messages kept in the log.",
         category: "LAYOUT",
         options: [5, 10, 15, 20, 30],
         onChange() {
-            SharkGame.Log.correctLogLength();
+            log.correctLogLength();
         },
     },
 
@@ -131,10 +142,26 @@ SharkGame.Settings = {
         },
     },
 
+    alwaysSingularTooltip: {
+        defaultSetting: false,
+        name: "Tooltip Always Singular",
+        desc: "Whether to make the tooltip only show what one of each thing produces.",
+        category: "APPEARANCE",
+        options: [true, false],
+    },
+
+    tooltipQuantityReminders: {
+        defaultSetting: true,
+        name: "Tooltip Amount Reminder",
+        desc: "Should tooltips tell you much you own of stuff?",
+        category: "APPEARANCE",
+        options: [true, false],
+    },
+
     enableThemes: {
         defaultSetting: true,
         name: "Enable Planet-dependent Styles",
-        desc: "Whether to use a different color scheme dependent on which planet you're currently on.",
+        desc: "Whether to change page colors for different planets.",
         options: [true, false],
         category: "APPEARANCE",
         onChange() {
@@ -149,7 +176,7 @@ SharkGame.Settings = {
     showIcons: {
         defaultSetting: true,
         name: "Show Action Button icons",
-        desc: "Whether to show icons/drawings above action buttons.",
+        desc: "Whether to show icons.",
         category: "APPEARANCE",
         options: [true, false],
     },
@@ -157,7 +184,7 @@ SharkGame.Settings = {
     showTabImages: {
         defaultSetting: true,
         name: "Show Tab Header Images",
-        desc: "Whether to show the art of the current tab.",
+        desc: "Whether to show art.",
         category: "APPEARANCE",
         options: [true, false],
         onChange() {
@@ -170,7 +197,7 @@ SharkGame.Settings = {
     showTooltips: {
         defaultSetting: true,
         name: "Tooltips",
-        desc: "Whether to show informational tooltips when hovering over certain elements.",
+        desc: "Whether to show informational tooltips when hovering over certain stuff.",
         category: "OTHER",
         options: [true, false],
     },
@@ -178,7 +205,7 @@ SharkGame.Settings = {
     updateCheck: {
         defaultSetting: true,
         name: "Check for updates",
-        desc: "Whether to show a notification when a new update becomes available. (Checked every 5 minutes)",
+        desc: "Whether to notify you of new updates.",
         category: "OTHER",
         options: [true, false],
         onChange() {
@@ -191,8 +218,8 @@ SharkGame.Settings = {
 
     offlineModeActive: {
         defaultSetting: true,
-        name: "Offline Mode",
-        desc: "Whether to calculate income gained while not playing.",
+        name: "Offline Progress",
+        desc: "Whether to calculate offline progress.",
         category: "OTHER",
         options: [true, false],
     },
@@ -209,7 +236,7 @@ SharkGame.Settings = {
         onChange() {
             clearInterval(main.autosaveHandler);
             main.autosaveHandler = setInterval(main.autosave, SharkGame.Settings.current.autosaveFrequency * 60000);
-            SharkGame.Log.addMessage(
+            log.addMessage(
                 "Now autosaving every " +
                     SharkGame.Settings.current.autosaveFrequency +
                     " minute" +

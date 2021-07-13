@@ -2,6 +2,7 @@
 SharkGame.Reflection = {
     tabId: "reflection",
     tabDiscovered: false,
+    tabSeen: false,
     tabName: "Reflection",
     tabBg: "img/bg/bg-gate.png",
 
@@ -18,15 +19,7 @@ SharkGame.Reflection = {
         "</br><span='medDesc'>Reflect upon the changes in yourself and reality you have made here.</span>",
 
     init() {
-        const ref = SharkGame.Reflection;
-        // register tab
-        SharkGame.Tabs[ref.tabId] = {
-            id: ref.tabId,
-            name: ref.tabName,
-            discovered: ref.tabDiscovered,
-            discoverReq: ref.discoverReq,
-            code: ref,
-        };
+        main.registerTab(this);
     },
 
     switchTo() {

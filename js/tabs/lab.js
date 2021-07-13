@@ -2,6 +2,7 @@
 SharkGame.Lab = {
     tabId: "lab",
     tabDiscovered: false,
+    tabSeen: false,
     tabName: "Laboratory",
     tabBg: "img/bg/bg-lab.png",
 
@@ -24,14 +25,7 @@ SharkGame.Lab = {
 
     init() {
         const lab = SharkGame.Lab;
-        // register tab
-        SharkGame.Tabs[lab.tabId] = {
-            id: lab.tabId,
-            name: lab.tabName,
-            discovered: lab.tabDiscovered,
-            discoverReq: lab.discoverReq,
-            code: lab,
-        };
+        main.registerTab(this);
         // add default purchased state to each upgrade
         lab.resetUpgrades();
     },
@@ -106,7 +100,7 @@ SharkGame.Lab = {
                     $("<p>").html("You get the feeling that " + res.getResourceName(hintResource, false, 2) + " may be the key.")
                 );
             } else {
-                SharkGame.Log.addError(`There is a possible, undiscovered upgrade (${hintedUpgrade}), but no valid hint resource.`);
+                log.addError(`There is a possible, undiscovered upgrade (${hintedUpgrade}), but no valid hint resource.`);
             }
         }
     },
@@ -237,7 +231,7 @@ SharkGame.Lab = {
             SharkGame.Lab.addUpgrade(upgradeId);
 
             if (upgrade.researchedMessage) {
-                SharkGame.Log.addMessage(upgrade.researchedMessage);
+                log.addMessage(upgrade.researchedMessage);
             }
         }
         SharkGame.Lab.update();
