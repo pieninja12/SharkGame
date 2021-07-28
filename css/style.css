@@ -164,12 +164,18 @@ h4 {
   background-color: var(--color-dark);
   margin-left: auto;
   margin-right: auto;
-  margin-top: 5px;
+  margin-top: 2.5em;
   padding: 10px;
   -webkit-border-radius: 10px;
   -moz-border-radius: 10px;
   border-radius: 10px;
   height: 100%;
+}
+#wrapper.topLogActive {
+  margin-top: 4.8em;
+}
+#wrapper.notMinimized {
+  margin-top: 0;
 }
 pre {
   text-align: left;
@@ -178,10 +184,6 @@ pre {
   display: none;
 }
 .section {
-  background-color: var(--color-med);
-  -webkit-box-shadow: 0 0 5px 5px var(--color-dark) inset;
-  -moz-box-shadow: 0 0 5px 5px var(--color-dark) inset;
-  box-shadow: 0 0 5px 5px var(--color-dark) inset;
   -webkit-border-radius: 10px;
   -moz-border-radius: 10px;
   border-radius: 10px;
@@ -197,22 +199,20 @@ pre {
 }
 #title {
   clear: both;
-  background-color: var(--color-med);
-  -webkit-box-shadow: 0 0 5px 5px var(--color-dark) inset;
-  -moz-box-shadow: 0 0 5px 5px var(--color-dark) inset;
-  box-shadow: 0 0 5px 5px var(--color-dark) inset;
   -webkit-border-radius: 10px;
   -moz-border-radius: 10px;
   border-radius: 10px;
   padding: 5px;
   overflow: hidden;
-  background: linear-gradient(var(--color-title), var(--color-title)), var(--color-med) url("../img/sharklogo.png") no-repeat center;
   text-shadow: 2px 2px 3px var(--color-darker);
+  margin-bottom: 1em;
+  box-shadow: 0 4px 4px 4px var(--color-darker);
+  background-image: url("../img/sharklogo.png");
+  background-position: center;
+  background-repeat: no-repeat;
 }
 #title.radical {
   background-image: url("../img/sharklogo_radical.png");
-  background-position: center;
-  background-repeat: no-repeat;
 }
 #title h1 {
   margin: 0.1em auto 0.3em auto;
@@ -230,30 +230,36 @@ pre {
 .top-bar #title {
   padding: 0;
   width: 100%;
-  height: 32px;
+  height: 4.3em;
   position: fixed;
   background-image: none;
   font-size: initial;
   left: 0;
   top: 0;
+  box-shadow: none;
+  margin-bottom: 0;
   z-index: 2;
   -webkit-border-radius: 0;
   -moz-border-radius: 0;
   border-radius: 0;
-  -webkit-box-shadow: 0 4px 4px 4px var(--color-darker);
-  -moz-box-shadow: 0 4px 4px 4px var(--color-darker);
-  box-shadow: 0 4px 4px 4px var(--color-darker);
+  pointer-events: none;
+}
+.top-bar #title.biggerTitleDiv {
+  height: 13em;
 }
 .top-bar #title #titlebar {
   width: 100%;
+  pointer-events: none;
 }
 .top-bar #title #gameName,
 .top-bar #title #versionNumber,
 .top-bar #title #updateGame {
   display: none;
+  pointer-events: all;
 }
 .top-bar #title #titlemenu,
 .top-bar #title #subtitlemenu {
+  pointer-events: all;
   float: left;
   font-size: initial;
   height: auto;
@@ -278,6 +284,25 @@ pre {
 }
 .top-bar #title li {
   font-size: initial;
+  pointer-events: all;
+}
+.top-bar #title #log {
+  pointer-events: all;
+}
+.top-bar #title #titlebackground {
+  display: block;
+}
+#titlebackground {
+  height: 2em;
+  display: none;
+  background-color: var(--color-med);
+  position: fixed;
+  width: 100%;
+  z-index: -1;
+  box-shadow: 0 4px 4px 4px var(--color-darker);
+}
+#titlebackground.topLogActive {
+  height: 4.3em;
 }
 #titlebar {
   height: auto;
@@ -287,18 +312,6 @@ pre {
   font-weight: bold;
   color: var(--color-lighter);
   font-size: 1.3em;
-}
-#titlebar li {
-  padding: 0;
-  margin: 0;
-  list-style-type: none;
-  display: inline;
-}
-#titlebar li:before {
-  content: " | ";
-}
-#titlebar li:first-child:before {
-  content: none;
 }
 #titlebar ul {
   padding: 0.2em 0;
@@ -313,8 +326,32 @@ pre {
   color: var(--color-lighter);
   filter: brightness(130%);
 }
+#titlemenu li {
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+  display: inline;
+}
+#titlemenu li:before {
+  content: " | ";
+}
+#titlemenu li:first-child:before {
+  content: none;
+}
 #subtitlemenu {
   font-size: 0.8em;
+}
+#subtitlemenu li {
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+  display: inline;
+}
+#subtitlemenu li:before {
+  content: " | ";
+}
+#subtitlemenu li:first-child:before {
+  content: none;
 }
 #contentMenu {
   overflow: hidden;
@@ -374,15 +411,15 @@ pre {
   text-align: left;
   width: 25%;
   background-color: var(--color-med);
-  -webkit-box-shadow: 0 0 5px 5px var(--color-dark) inset;
-  -moz-box-shadow: 0 0 5px 5px var(--color-dark) inset;
-  box-shadow: 0 0 5px 5px var(--color-dark) inset;
   -webkit-border-radius: 10px;
   -moz-border-radius: 10px;
   border-radius: 10px;
   padding: 5px;
   overflow: hidden;
   text-shadow: 0px 0px 2px #000000;
+  -webkit-box-shadow: 0 0 5px 5px var(--color-dark) inset;
+  -moz-box-shadow: 0 0 5px 5px var(--color-dark) inset;
+  box-shadow: 0 0 5px 5px var(--color-dark) inset;
 }
 #sidebar #resourceTableContainer {
   margin: 0;
@@ -439,15 +476,20 @@ pre {
   padding: 0;
 }
 #log {
-  padding: 5px;
-  margin: 5px;
   overflow: hidden;
   /* overflow anchor fixes jittering!
     It disables scroll anchoring where chrome tries to help by scrolling the page */
   overflow-anchor: none;
+  position: relative;
+}
+#log li {
+  display: block;
+  padding-top: 0.1em;
+  padding-bottom: 0.1em;
 }
 #log h3 {
-  display: inline;
+  display: block;
+  text-align: center;
 }
 #log .error {
   color: #e03030;
@@ -458,8 +500,52 @@ pre {
   text-shadow: 0 0 0.8em #60c9a7;
 }
 #log #messageList {
+  box-sizing: border-box;
+  text-align: center;
+  padding: 0;
   overflow-y: hidden;
-  max-height: 400pt;
+  max-height: 9em;
+  margin-top: 0;
+  margin-bottom: 0;
+  border-style: solid;
+  border-width: 2px;
+  background-color: var(--color-med);
+  -webkit-box-shadow: 0 0 2px 2px var(--color-dark) inset;
+  -moz-box-shadow: 0 0 2px 2px var(--color-dark) inset;
+  box-shadow: 0 0 2px 2px var(--color-dark) inset;
+}
+#log #messageList.scrollable {
+  overflow-y: scroll;
+}
+#log #messageList.forRightSide {
+  overflow-y: scroll;
+  border-style: none;
+  max-height: 42em;
+}
+#log #messageList.forRightSide li {
+  padding-top: 1em;
+  padding-bottom: 1em;
+  padding-left: 0.4em;
+  padding-right: 0.4em;
+}
+#log #messageList.forLeftSide {
+  overflow-y: scroll;
+  border-style: none;
+  max-height: 30em;
+}
+#log #messageList.forLeftSide li {
+  padding-top: 1em;
+  padding-bottom: 1em;
+  padding-left: 0.4em;
+  padding-right: 0.4em;
+}
+#log #messageList .evenMessage {
+  background-color: var(--color-dark);
+}
+#rightLogContainer {
+  float: right;
+  width: 18%;
+  max-height: 40em;
 }
 #resource-numen {
   text-shadow: 0 0 0.3em #ffffff, 0 0 0.6em #ffffff, 0 0 0.8em #ffffff;
@@ -468,15 +554,15 @@ pre {
   text-shadow: 0 0 0.6em #ace3d1;
 }
 #content {
-  background-color: var(--color-med);
-  -webkit-box-shadow: 0 0 5px 5px var(--color-dark) inset;
-  -moz-box-shadow: 0 0 5px 5px var(--color-dark) inset;
-  box-shadow: 0 0 5px 5px var(--color-dark) inset;
   -webkit-border-radius: 10px;
   -moz-border-radius: 10px;
   border-radius: 10px;
   padding: 5px;
   overflow: hidden;
+  background-color: var(--color-med);
+  -webkit-box-shadow: 0 0 5px 5px var(--color-dark) inset;
+  -moz-box-shadow: 0 0 5px 5px var(--color-dark) inset;
+  box-shadow: 0 0 5px 5px var(--color-dark) inset;
   padding: 0.5em;
 }
 #content #helpButton {
@@ -516,6 +602,9 @@ pre {
 }
 .pileArrangement button.newlyDiscovered {
   max-width: 12em;
+}
+.pileArrangement.smallerMargin button {
+  margin: 0.4em;
 }
 button.newlyDiscovered {
   background-color: #38a581;
@@ -721,7 +810,7 @@ button.newlyDiscovered.disabled div {
 #recyclerContainer {
   margin: 0 auto;
   overflow: hidden;
-  width: 55em;
+  max-width: 55em;
 }
 #recyclerContainer > #inputButtons {
   float: left;
@@ -1042,22 +1131,22 @@ button.disabled div {
 .gateway h1 {
   text-align: center;
   color: #d2f0e6;
-  text-shadow: 0 0 0.5em #f8fdfb, 0 0 1em #f8fdfb;
+  text-shadow: 0 0 0.3em #f8fdfb, 0 0 2em #f8fdfb;
 }
 .gateway h2 {
   text-align: center;
   color: #ace3d1;
-  text-shadow: 0 0 0.5em #d2f0e6, 0 0 1em #d2f0e6;
+  text-shadow: 0 0 0.3em #d2f0e6, 0 0 2em #d2f0e6;
 }
 .gateway h3 {
   text-align: center;
   color: #ace3d1;
-  text-shadow: 0 0 0.5em #d2f0e6, 0 0 1em #d2f0e6;
+  text-shadow: 0 0 0.3em #d2f0e6, 0 0 2em #d2f0e6;
 }
 .gateway h4 {
   text-align: center;
   color: #ace3d1;
-  text-shadow: 0 0 0.5em #d2f0e6, 0 0 1em #d2f0e6;
+  text-shadow: 0 0 0.3em #d2f0e6, 0 0 2em #d2f0e6;
 }
 .gateway .medDesc {
   color: #99ddc6;
@@ -1243,6 +1332,13 @@ button.gateway.disabled div {
 #aspectList {
   margin: 0.5em auto;
 }
+#aspectTable {
+  border-spacing: 0;
+}
+#aspectTable tr:nth-child(4n) td,
+#aspectTable tr:nth-child(4n + 1) td {
+  background-color: #38a581;
+}
 .aspectDiv {
   display: inline-block;
   vertical-align: middle;
@@ -1328,7 +1424,7 @@ button.planetButton:active {
 .tooltip .littleTooltipText {
   font-size: 0.6em;
 }
-.forHomeButton {
+.forHomeButtonOrGrotto {
   width: 250px;
 }
 .forIncomeTable {
@@ -1342,6 +1438,14 @@ button.planetButton:active {
 .forAspectTreeUnpurchased {
   background-color: #113228;
   border-color: #246c54;
+}
+.hrForTooltipJuxtaposition {
+  border: 0;
+  border-top: 2px solid var(--color-lighter);
+}
+.hrForTooltipSeparation {
+  border: 0;
+  border-top: 2px dashed var(--color-lighter);
 }
 .collapser {
   padding-right: 1em;

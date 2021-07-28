@@ -23,17 +23,23 @@ SharkGame.Gateway = {
             if (SharkGame.wonGame) {
                 essenceReward = 4;
                 gateway.markWorldCompleted(world.worldType);
+                SharkGame.persistentFlags.destinyRolls = SharkGame.Aspects.destinyGamble.level;
+                gateway.preparePlanetSelection(gateway.NUM_PLANETS_TO_SHOW);
             } else {
                 essenceReward = 0;
             }
             res.changeResource("essence", essenceReward);
         }
 
+        if (this.planetPool.length === 0) {
+            gateway.preparePlanetSelection(gateway.NUM_PLANETS_TO_SHOW);
+        }
+
         // RESET COMPLETED GATE REQUIREMENTS
         SharkGame.Gate.completedRequirements = {};
 
-        // PREPARE PLANETS
-        gateway.preparePlanetSelection(gateway.NUM_PLANETS_TO_SHOW);
+        // clear non-persistent flags
+        SharkGame.flags = {};
 
         // SAVE
         SharkGame.Save.saveGame();
@@ -91,25 +97,29 @@ SharkGame.Gateway = {
         if (!SharkGame.wonGame) {
             gatewayContent.append($("<p>").html("It is not clear how you have ended up here, but you remember a bitter defeat.").addClass("medDesc"));
         }
-        gatewayContent.append($("<p>").html("Something unseen says,").addClass("medDesc"));
+        gatewayContent.append($("<p>").html(sharktext.boldString("Something unseen says,")).addClass("medDesc"));
         gatewayContent.append($("<em>").attr("id", "gatewayVoiceMessage").html(gateway.getVoiceMessage()));
         if (essenceRewarded > 0) {
             gatewayContent.append(
                 $("<p>").html(
                     "Entering this place has changed you, granting you <span class='essenceCount'>" +
-                        main.beautify(essenceRewarded) +
+                        sharktext.beautify(essenceRewarded) +
                         "</span> essence."
                 )
             );
         }
         gatewayContent.append(
-            $("<p>").html("You have <span id='essenceHeldDisplay' class='essenceCount'>" + main.beautify(essenceHeld) + "</span> essence.")
+            $("<p>").html(
+                sharktext.boldString(
+                    "You have <span id='essenceHeldDisplay' class='essenceCount'>" + sharktext.beautify(essenceHeld) + "</span> essence."
+                )
+            )
         );
         if (numenHeld > 0) {
             const numenName = numenHeld > 1 ? "numina" : "numen";
             gatewayContent.append(
                 $("<p>").html(
-                    "You also have <span class='numenCount'>" + main.beautify(numenHeld) + "</span> " + numenName + ", and you radiate divinity."
+                    "You also have <span class='numenCount'>" + sharktext.beautify(numenHeld) + "</span> " + numenName + ", and you radiate divinity."
                 )
             );
         }
@@ -138,7 +148,7 @@ SharkGame.Gateway = {
         containerDiv.append(
             $("<p>")
                 .html("<em>Time spent within last ocean:</em><br/>")
-                .append(main.formatTime(SharkGame.timestampRunEnd - SharkGame.timestampRunStart))
+                .append(sharktext.formatTime(SharkGame.timestampRunEnd - SharkGame.timestampRunStart))
         );
     },
 
@@ -147,10 +157,10 @@ SharkGame.Gateway = {
         aspectTreeContent.append(
             $("<strong>")
                 .attr("id", "essenceCount")
-                .html(main.beautify(res.getResource("essence")) + " ESSENCE")
+                .html(sharktext.beautify(res.getResource("essence")) + " ESSENCE")
         );
         aspectTreeContent.append($("<p>").html("Your will flows into solid shapes beyond your control.<br>Focus."));
-        aspectTreeContent.append(tree.drawCanvas());
+        aspectTreeContent.append(tree.drawTree(SharkGame.Settings.current.doAspectTable === "table"));
 
         tree.setUp();
         tree.render();
@@ -165,7 +175,7 @@ SharkGame.Gateway = {
         gateway.transitioning = false;
     },
 
-    showPlanets() {
+    showPlanets(foregoAnimation) {
         // construct the gateway content
         const planetSelectionContent = $("<div>");
         planetSelectionContent.append($("<p>").html("Other worlds await."));
@@ -186,6 +196,10 @@ SharkGame.Gateway = {
             )
         );
 
+        if (SharkGame.Aspects.destinyGamble.level > 0) {
+            SharkGame.Button.makeButton("destinyGamble", "foobar", planetSelectionContent, gateway.rerollWorlds);
+        }
+
         // add return to gateway button
         const returnButtonDiv = $("<div>");
         SharkGame.Button.makeButton("backToGateway", "return to gateway", returnButtonDiv, () => {
@@ -193,9 +207,34 @@ SharkGame.Gateway = {
         });
         planetSelectionContent.append(returnButtonDiv);
 
-        main.showPane("WORLDS", planetSelectionContent, true, 500, true);
+        main.showPane("WORLDS", planetSelectionContent, true, foregoAnimation ? 0 : 500, true);
         gateway.transitioning = false;
         gateway.updatePlanetButtons();
+        gateway.formatDestinyGamble();
+    },
+
+    formatDestinyGamble() {
+        if (!_.isUndefined(SharkGame.persistentFlags.destinyRolls)) {
+            switch (SharkGame.persistentFlags.destinyRolls) {
+                case 0:
+                    $("#destinyGamble").html("No rerolls remain. Beat a world to recharge.").addClass("disabled");
+                    break;
+                case 1:
+                    $("#destinyGamble").html("Reroll Worlds (1 reroll remains)");
+                    break;
+                default:
+                    $("#destinyGamble").html("Reroll Worlds (" + SharkGame.persistentFlags.destinyRolls + " rerolls remain)");
+            }
+        }
+    },
+
+    rerollWorlds() {
+        if (SharkGame.persistentFlags.destinyRolls && SharkGame.persistentFlags.destinyRolls > 0) {
+            SharkGame.persistentFlags.destinyRolls -= 1;
+            gateway.preparePlanetSelection(gateway.NUM_PLANETS_TO_SHOW);
+            gateway.showPlanets(true);
+            SharkGame.Save.saveGame();
+        }
     },
 
     confirmWorld() {
@@ -284,7 +323,7 @@ SharkGame.Gateway = {
             const buttonSel = $("#planet-" + planetData.type);
             if (buttonSel.length > 0) {
                 const deeperPlanetData = SharkGame.WorldTypes[planetData.type];
-                const label = deeperPlanetData.name + "<br>" + deeperPlanetData.desc;
+                const label = sharktext.boldString(deeperPlanetData.name) + "<br>" + deeperPlanetData.desc;
 
                 buttonSel.html(label);
 
@@ -341,7 +380,7 @@ SharkGame.Gateway = {
                     _.each(worldData.foresight.missing, (missingResource) => {
                         missingList.append(
                             $("<li>")
-                                .html("<strong>This world has no " + res.getResourceName(missingResource, false, 2) + ".</strong>")
+                                .html("<strong>This world has no " + sharktext.getResourceName(missingResource, false, 2) + ".</strong>")
                                 .addClass("largeDesc")
                         );
                     });
@@ -355,8 +394,8 @@ SharkGame.Gateway = {
                                 .html(
                                     "<strong>You feel the presence of " +
                                         (gateway.playerHasSeenResource(presentResource)
-                                            ? res.getResourceName(presentResource, false, 2)
-                                            : res.applyResourceColoration(presentResource, gateway.PresenceFeelings[presentResource])) +
+                                            ? sharktext.getResourceName(presentResource, false, 2)
+                                            : sharktext.applyResourceColoration(presentResource, gateway.PresenceFeelings[presentResource])) +
                                         ".</strong>"
                                 )
                                 .addClass("largeDesc")
@@ -555,7 +594,7 @@ SharkGame.Gateway.Messages = {
         ],
     },
     loss: [
-        "No matter. You will succeed in future, no doubt.",
+        "No matter. You will succeed in the future, no doubt.",
         "Never give in. Never surrender. Empty platitudes, perhaps, but sound advice nonetheless.",
         "Mistakes are filled with lessons. Learn never to repeat them.",
         "How does it feel to know that everyone who trusted you has perished?",

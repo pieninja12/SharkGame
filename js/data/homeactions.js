@@ -28,11 +28,9 @@ SharkGame.HomeActions = {
         const data = _.cloneDeep(table[actionName]);
 
         if (cad.actionPriceModifier !== 1) {
-            if (data.cost) {
-                _.each(data.cost, (costData) => {
-                    costData.priceIncrease *= cad.actionPriceModifier;
-                });
-            }
+            _.each(data.cost, (costData) => {
+                costData.priceIncrease *= cad.actionPriceModifier;
+            });
         }
 
         return data;
@@ -3217,7 +3215,7 @@ SharkGame.HomeActionCategories = {
 
     basic: {
         name: "Basic",
-        actions: ["catchFish", "prySponge", "getClam", "getJellyfish"],
+        actions: ["catchFish", "debugbutton", "prySponge", "getClam", "getJellyfish"],
     },
 
     frenzy: {

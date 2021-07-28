@@ -101,46 +101,8 @@ $.extend(SharkGame, {
     gameOver: false,
     wonGame: false,
 
-    cheatsAndDebug: {
-        pause: false,
-        stop: false,
-        speed: 1,
-        upgradePriceModifier: 1,
-        actionPriceModifier: 1,
-        noNumberBeautifying: false,
-        cycling: false,
-        cycleStyles(time = 2000) {
-            if (cad.cycling) return;
-            cad.cycling = true;
-            let i = 0;
-            let intervalId = NaN;
-            function nextStyle() {
-                if (i >= gateway.allowedWorlds.length && !isNaN(intervalId)) {
-                    clearInterval(intervalId);
-                } else {
-                    world.worldType = gateway.allowedWorlds[i++];
-                    console.debug(`worldType now ${world.worldType}`);
-                }
-            }
-            setTimeout(nextStyle);
-            intervalId = setInterval(nextStyle, time);
-            cad.cycling = false;
-        },
-
-        discoverAll() {
-            $.each(SharkGame.Tabs, (tabName) => {
-                if (tabName !== "current") {
-                    main.discoverTab(tabName);
-                }
-            });
-        },
-
-        giveEverything(amount = 1) {
-            SharkGame.ResourceMap.forEach((_resource, resourceId) => {
-                res.changeResource(resourceId, amount);
-            });
-        },
-    },
+    flags: {},
+    persistentFlags: {},
 
     credits:
         "<p>This game was originally created in 3 days for Seamergency 2014.<br/>" +
@@ -162,12 +124,11 @@ $.extend(SharkGame, {
         "<h3>Or are they?</h3>",
 
     help:
-        "<p>This game is a game about discovery, resources, and does not demand your full attention. " +
-        "You are free to pay as much attention to the game as you want. " +
+        "<p>This game is a game about resources and discovery, and does not demand your full attention. " +
         "It will happily run in the background, and works even while closed.</p>" +
-        "<p>To begin, you should catch fish. Once you have some fish, more actions will become available. " +
-        "<p>If you are ever stuck, try actions you haven't yet tried. " +
-        "<p>If you are here because you think you have encountered a bug of some kind, or you really need help, report it on the <a href='https://discord.gg/nN7BQDJR2G' target='blank_'>discord</a>.</p>",
+        "<p>To begin, you should catch fish. Once you have some fish, more actions will become available.</p>" +
+        "<p>If you are ever stuck, double-check that you have already bought everything, then make sure there's not a resource you've been neglecting.</p>" +
+        "<p>If you are still stuck, or if you think it's a bug, you can always ask for help on the <a href='https://discord.gg/nN7BQDJR2G' target='blank_'>discord server</a>.</p>",
 
     donate:
         "<p>You can <a href='https://www.sharktrust.org/Listing/Category/donate' target='_blank'>donate to help save sharks and mantas</a>!</p>" +
@@ -179,8 +140,9 @@ $.extend(SharkGame, {
         "item_number=Shark%20Game%20Support&no_note=1&" +
         "no_shipping=1&currency_code=USD&" +
         "bn=PP%2dDonationsBF%3adonate%2epng%3aNonHosted' " +
-        "target='_blank'>support the original developer</a>" +
-        " if you'd like.)</span></p>",
+        "target='_blank'>support the developer of the original shark game,</a>" +
+        " if you'd like.)</span></p>" +
+        "<p>The developers of the mod are not currently taking donations.</p>",
 
     notice:
         "<p>Welcome to the open <b>alpha</b> of v0.2 for New Frontiers.</p>" +
@@ -198,99 +160,6 @@ $.extend(SharkGame, {
      */
     choose(choices) {
         return choices[Math.floor(Math.random() * choices.length)];
-    },
-    plural(number) {
-        return number === 1 ? "" : "s";
-    },
-    colorLum(hex, lum) {
-        // validate hex string
-        hex = String(hex).replace(/[^0-9a-f]/gi, "");
-        if (hex.length < 6) {
-            hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
-        }
-        lum = lum || 0;
-
-        // convert to decimal and change luminosity
-        let rgb = "#";
-        for (let i = 0; i < 3; i++) {
-            let color = parseInt(hex.substr(i * 2, 2), 16);
-            color = Math.round(Math.min(Math.max(0, color + color * lum), 255)).toString(16);
-            rgb += ("00" + color).substr(color.length);
-        }
-
-        return rgb;
-    },
-    getColorValue(color) {
-        color = String(color).replace(/[^0-9a-f]/gi, "");
-        return Math.max(parseInt(color.substr(0, 2), 16), parseInt(color.substr(2, 2), 16), parseInt(color.substr(4, 2), 16));
-    },
-    getRelativeLuminance(color) {
-        color = String(color).replace(/[^0-9a-f]/gi, "");
-        let red = parseInt(color.substr(0, 2), 16);
-        let green = parseInt(color.substr(2, 2), 16);
-        let blue = parseInt(color.substr(4, 2), 16);
-        red = red / 255;
-        green = green / 255;
-        blue = blue / 255;
-        let lum = 0;
-        _.each([red, green, blue], (piece, index) => {
-            if (piece <= 0.03928) {
-                piece = piece / 12.92;
-            } else {
-                piece = ((piece + 0.055) / 1.055) ** 2.4;
-            }
-            lum += piece * [0.2126, 0.7152, 0.0722][index];
-        });
-        return lum;
-    },
-    correctLuminance(color, luminance) {
-        color = String(color).replace(/[^0-9a-f]/gi, "");
-        let red = parseInt(color.substr(0, 2), 16);
-        let green = parseInt(color.substr(2, 2), 16);
-        let blue = parseInt(color.substr(4, 2), 16);
-        red = red / 255;
-        green = green / 255;
-        blue = blue / 255;
-        const varA = 1.075 * (0.2126 * red ** 2 + 0.7152 * green ** 2 + 0.0722 * blue ** 2);
-        const varB = -0.075 * (0.2126 * red + 0.7152 * green + 0.0722 * blue);
-        const ratio = Math.max((-varB + Math.sqrt(varB ** 2 + 4 * varA * luminance)) / (2 * varA), 0);
-        red = parseInt(Math.min(255, 255 * red * ratio).toFixed(0)).toString(16);
-        green = parseInt(Math.min(255, 255 * green * ratio).toFixed(0)).toString(16);
-        blue = parseInt(Math.min(255, 255 * blue * ratio).toFixed(0)).toString(16);
-        return "#" + red + green + blue;
-    },
-    convertColorString(color) {
-        const colors = color
-            .substring(4)
-            .replace(/[^0-9a-f]/gi, " ")
-            .split(" ");
-        let colorstring = "#";
-        for (let i = 0; i < 3; i++) {
-            colorstring += ("00" + parseInt(colors[i * 2]).toString(16)).substr(parseInt(colors[i * 2]).toString(16).length);
-        }
-        return colorstring;
-    },
-    getBrightColor(color) {
-        color = String(color).replace(/[^0-9a-f]/gi, "");
-        let red = parseInt(color.substr(0, 2), 16);
-        let green = parseInt(color.substr(2, 2), 16);
-        let blue = parseInt(color.substr(4, 2), 16);
-        red = red / 255;
-        green = green / 255;
-        blue = blue / 255;
-        const most = Math.max(red, green, blue);
-        red = parseInt((255 * (1 / most) * red).toFixed(0)).toString(16);
-        green = parseInt((255 * (1 / most) * green).toFixed(0)).toString(16);
-        blue = parseInt((255 * (1 / most) * blue).toFixed(0)).toString(16);
-        return "#" + red + green + blue;
-    },
-    getElementColor(id, propertyName) {
-        const color = getComputedStyle(document.getElementById(id)).getPropertyValue(propertyName);
-        return SharkGame.convertColorString(color);
-    },
-    /** @param {string} string */
-    boldString(string) {
-        return `<span class='bold'>${string}</span>`;
     },
     getImageIconHTML(imagePath, width, height) {
         if (!imagePath) {
@@ -421,96 +290,6 @@ SharkGame.Main = {
     tickHandler: -1,
     autosaveHandler: -1,
 
-    beautify(number, suppressDecimals, toPlaces) {
-        if (cad.noNumberBeautifying) {
-            return number.toString();
-        }
-
-        let formatted;
-
-        let negative = false;
-        if (number < 0) {
-            negative = true;
-            number *= -1;
-        }
-
-        if (number === Number.POSITIVE_INFINITY) {
-            formatted = "infinite";
-        } else if (number < 1 && number >= 0) {
-            if (suppressDecimals) {
-                formatted = "0";
-            } else if (number >= 0.01) {
-                formatted = number.toFixed(2) + "";
-            } else if (number >= 0.001) {
-                formatted = number.toFixed(3) + "";
-            } else if (number >= 0.0001) {
-                formatted = number.toFixed(4) + "";
-            } else if (number >= 0.00001) {
-                // number > 0.00001 && negative -> number > 0.00001 && number < 0 -> false
-                formatted = number.toFixed(5) + "";
-            } else {
-                formatted = "0";
-            }
-
-            if (negative) {
-                formatted = "-" + formatted;
-            }
-        } else {
-            const suffixes = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc"];
-            const digits = Math.floor(Math.log10(number));
-            // Max for a case where the supported suffix is not specified
-            const precision = Math.max(0, 2 - (digits % 3));
-            const suffixIndex = Math.floor(digits / 3);
-
-            let suffix;
-            if (suffixIndex >= suffixes.length) {
-                formatted = "lots";
-            } else {
-                suffix = suffixes[suffixIndex];
-                // fix number to be compliant with suffix
-                if (suffixIndex > 0) {
-                    number /= Math.pow(1000, suffixIndex);
-                }
-                let formattedNumber;
-                if (suffixIndex === 0) {
-                    if (toPlaces && toPlaces - digits > 0 && number !== Math.floor(number)) {
-                        formattedNumber = number.toFixed(toPlaces - digits);
-                    } else {
-                        formattedNumber = Math.floor(number);
-                    }
-                } else if (suffixIndex > 0) {
-                    formattedNumber = number.toFixed(precision) + suffix;
-                } else {
-                    formattedNumber = number.toFixed(precision);
-                }
-                formatted = (negative ? "-" : "") + formattedNumber;
-            }
-        }
-
-        return formatted;
-    },
-
-    beautifyIncome(number, also = "") {
-        if (cad.noNumberBeautifying) {
-            return number.toString();
-        }
-
-        const abs = Math.abs(number);
-        if (abs >= 0.001) {
-            number = main.beautify(number, false, 2);
-            number += also;
-            number += "/s";
-        } else if (abs > 0.000001) {
-            number *= 3600;
-            number = number.toFixed(3);
-            number += also;
-            number += "/h";
-        } else {
-            number = 0 + "/s";
-        }
-        return number;
-    },
-
     applyFramerate() {
         SharkGame.INTERVAL = 1000 / SharkGame.Settings.current.framerate;
         SharkGame.dt = 1 / SharkGame.Settings.current.framerate;
@@ -520,31 +299,8 @@ SharkGame.Main = {
         main.tickHandler = setInterval(main.tick, SharkGame.INTERVAL);
     },
 
-    formatTime(milliseconds) {
-        const numSeconds = Math.floor(milliseconds / 1000);
-        const numMinutes = Math.floor(numSeconds / 60);
-        const numHours = Math.floor(numMinutes / 60);
-        const numDays = Math.floor(numHours / 24);
-        const numWeeks = Math.floor(numDays / 7);
-        const numMonths = Math.floor(numWeeks / 4);
-        const numYears = Math.floor(numMonths / 12);
-
-        const formatSeconds = (numSeconds % 60).toString(10).padStart(2, "0");
-        const formatMinutes = numMinutes > 0 ? (numMinutes % 60).toString(10).padStart(2, "0") + ":" : "";
-        const formatHours = numHours > 0 ? (numHours % 24).toString() + ":" : "";
-        const formatDays = numDays > 0 ? (numDays % 7).toString() + "D, " : "";
-        const formatWeeks = numWeeks > 0 ? (numWeeks % 4).toString() + "W, " : "";
-        const formatMonths = numMonths > 0 ? (numMonths % 12).toString() + "M, " : "";
-        const formatYears = numYears > 0 ? numYears.toString() + "Y, " : "";
-
-        return formatYears + formatMonths + formatWeeks + formatDays + formatHours + formatMinutes + formatSeconds;
-    },
-
     // credit where it's due, i didn't write this (regexes fill me with fear), pulled from
     // http://stackoverflow.com/questions/196972/convert-string-to-title-case-with-javascript/196991#196991
-    toTitleCase(str) {
-        return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
-    },
 
     // also functions as a reset
     init(foregoLoad) {
@@ -600,6 +356,11 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         SharkGame.Recycler.init();
         SharkGame.Gate.init();
         SharkGame.Reflection.init();
+        // SharkGame.CheatsAndDebug.init();
+
+        // clear flags
+        SharkGame.flags = {};
+        SharkGame.persistentFlags = {};
 
         SharkGame.Main.setUpTitleBar();
 
@@ -634,15 +395,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         }
 
         // rename a game option if this is a first time run
-        if (main.isFirstTime()) {
-            SharkGame.TitleBar.skipLink.name = "reset";
-            main.setUpTitleBar();
-            main.showPane("v0.2 OPEN ALPHA NOTICE", SharkGame.notice);
-        } else {
-            // and then remember to actually set it back once it's not
-            SharkGame.TitleBar.skipLink.name = "skip";
-            main.setUpTitleBar();
-        }
+        main.correctTitleBar();
 
         // discover actions that were present in last save
         home.discoverActions();
@@ -673,11 +426,11 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
     },
 
     tick() {
-        if (SharkGame.cheatsAndDebug.pause) {
+        if (cad.pause) {
             SharkGame.before = _.now();
             return;
         }
-        if (SharkGame.cheatsAndDebug.stop) {
+        if (cad.stop) {
             return;
         }
         if (!SharkGame.gameOver) {
@@ -785,6 +538,18 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         });
     },
 
+    correctTitleBar() {
+        if (main.isFirstTime()) {
+            SharkGame.TitleBar.skipLink.name = "reset";
+            main.setUpTitleBar();
+            main.showPane("v0.2 OPEN ALPHA NOTICE", SharkGame.notice);
+        } else {
+            // and then remember to actually set it back once it's not
+            SharkGame.TitleBar.skipLink.name = "skip";
+            main.setUpTitleBar();
+        }
+    },
+
     setUpTitleBar() {
         const titleMenu = $("#titlemenu");
         const subTitleMenu = $("#subtitlemenu");
@@ -878,7 +643,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         }
     },
 
-    createBuyButtons(customLabel, addToWhere, appendOrPrepend) {
+    createBuyButtons(customLabel, addToWhere, appendOrPrepend, absoluteOnly) {
         if (!addToWhere) {
             log.addError("Attempted to create buy buttons without specifying what to do with them.");
         }
@@ -897,6 +662,10 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
                 return;
         }
         _.each(SharkGame.Settings.buyAmount.options, (amount) => {
+            if (amount < 0 && absoluteOnly) {
+                return true;
+            }
+
             const disableButton = amount === SharkGame.Settings.current.buyAmount;
             buttonList.append(
                 $("<li>").append(
@@ -917,7 +686,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
             } else if (amount === "custom") {
                 label += "custom";
             } else {
-                label += main.beautify(amount);
+                label += sharktext.beautify(amount);
             }
             $("#buy-" + amount)
                 .html(label)
@@ -952,16 +721,6 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
 
     onCustomChange() {
         SharkGame.Settings.current.customSetting = $("#custom-input")[0].value;
-    },
-
-    getBuyAmount() {
-        if (SharkGame.Settings.current.buyAmount === "custom") {
-            return Math.floor($("#custom-input")[0].valueAsNumber) >= 1 && $("#custom-input")[0].valueAsNumber < 1e18
-                ? Math.floor($("#custom-input")[0].valueAsNumber)
-                : 1;
-        } else {
-            return SharkGame.Settings.current.buyAmount;
-        }
     },
 
     changeTab(tab) {
@@ -1010,7 +769,9 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         });
 
         $.each(categories, (category, settings) => {
-            optionsTable.append($("<tr>").html("<br><span style='text-decoration: underline'>" + category.bold() + "</span>"));
+            optionsTable.append(
+                $("<tr>").html("<h3><br><span style='text-decoration: underline'>" + sharktext.boldString(category) + "</span></h3>")
+            );
             _.each(settings, (settingName) => {
                 const setting = SharkGame.Settings[settingName];
                 if (settingName === "current") {
@@ -1190,6 +951,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
                 };
             });
             backup.completedWorlds = SharkGame.Gateway.completedWorlds;
+            backup.persistentFlags = SharkGame.persistentFlags;
 
             SharkGame.timestampRunStart = _.now();
             main.init(true);
@@ -1201,6 +963,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
                 res.setTotalResource(resourceName, resourceData.totalAmount);
             });
             SharkGame.Gateway.completedWorlds = backup.completedWorlds;
+            SharkGame.persistentFlags = backup.persistentFlags;
 
             try {
                 SharkGame.Save.saveGame();
@@ -1232,7 +995,7 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         return pane;
     },
 
-    showPane(title, contents, notCloseable, fadeInTime, customOpacity) {
+    showPane(title, contents, notCloseable, fadeInTime = 600, customOpacity) {
         let pane;
 
         // GENERATE PANE IF THIS IS THE FIRST TIME
@@ -1245,7 +1008,6 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         // begin fading in/displaying overlay if it isn't already visible
         const overlay = $("#overlay");
         // is it already up?
-        fadeInTime = fadeInTime || 600;
         if (overlay.is(":hidden")) {
             // nope, show overlay
             const overlayOpacity = customOpacity || 0.5;
@@ -1308,20 +1070,6 @@ Mod of v ${SharkGame.ORIGINAL_VERSION}`
         return world.worldType === "start" && res.getTotalResource("essence") <= 0;
     },
 
-    getDeterminer(name) {
-        const firstLetter = SharkGame.ResourceMap.get(name).name.charAt(0);
-
-        //note to self: make the next line not suck
-        // Possibly add an "uncountable" property to resources somehow? Manual works fine though
-        if (["algae", "coral", "spronge", "delphinium", "coralglass", "sharkonium", "residue", "tar", "ice", "science", "papyrus"].includes(name)) {
-            return "";
-        } else if ("aeiou".includes(firstLetter)) {
-            return "an";
-        } else {
-            return "a";
-        }
-    },
-
     resetTimers() {
         SharkGame.timestampLastSave = _.now();
         SharkGame.timestampGameStart = _.now();
@@ -1371,6 +1119,18 @@ SharkGame.FunFacts = [
 ];
 
 SharkGame.Changelog = {
+    "<a href='https://github.com/spencers145/SharkGame'>New Frontiers</a> 0.2 patch 20210728a": [
+        "The log can now be in one of 3 spots. Change which one in options. Default is now right side.",
+        "Added Resource Affect tooltips; mouse over the multipliers in the R column in the advanced grotto table and you can see what is causing them.",
+        "Added work-in-progress (but functional) aspect table as an alternative to the tree, specifically for accessibility.",
+        "Added extraction team sprite.",
+        "Added historian sprite; decided to repurpose the old philosopher sprite from OG shark game.",
+        "Updated tooltip formatting.",
+        "Updated Recycler UI to eliminate quirkiness.",
+        "Fixed a bug where costs disappear in no-icons mode.",
+        "Fixed incorrect description of an aspect.",
+        "Fixed bugs with importing saves.",
+    ],
     "<a href='https://github.com/spencers145/SharkGame'>New Frontiers</a> 0.2 patch 20210713a": [
         "Tooltips show you how much you already own of what you're buying. Can be turned off in options.",
         "Tooltips have their numbers scale based on how much of something you're buying. Can be turned off in options.",

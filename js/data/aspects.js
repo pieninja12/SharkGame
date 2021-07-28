@@ -1,4 +1,5 @@
 "use strict";
+
 /**
  * @type {Record<string, {
  *     requiredBy: string[] | undefined
@@ -56,9 +57,9 @@ SharkGame.Aspects = {
         },
         getEffect(level) {
             return (
-                res.getResourceName("shark", false, 69) +
+                sharktext.getResourceName("shark", false, 69) +
                 " collect " +
-                res.getResourceName("fish") +
+                sharktext.getResourceName("fish") +
                 " " +
                 (level > 0 ? level + 1 : 1) +
                 " times faster."
@@ -148,12 +149,9 @@ SharkGame.Aspects = {
             tree.increaseLevel(this);
         },
         apply(when) {
-            if (
-                when === "init" &&
-                SharkGame.timestampSimulated + SharkGame.timestampLastSave - 2 * SharkGame.timestampRunStart < 1000 &&
-                res.getResource("crab") === 0
-            ) {
+            if (when === "init" && res.getResource("crab") === 0 && !SharkGame.flags.pathOfTimeApplied) {
                 res.changeResource("crab", 20 * this.level ** 2);
+                SharkGame.flags.pathOfTimeApplied = true;
             }
         },
     },
@@ -172,7 +170,12 @@ SharkGame.Aspects = {
         },
         getEffect(level) {
             return (
-                res.getResourceName("ray", false, 69) + " hunt " + res.getResourceName("fish", false, 69) + " " + 2 ** (level - 1) * 2.5 + "x faster."
+                sharktext.getResourceName("ray", false, 69) +
+                " hunt " +
+                sharktext.getResourceName("fish", false, 69) +
+                " " +
+                2 ** (level - 1) * 2.5 +
+                "x faster."
             );
         },
         getUnlocked() {},
@@ -196,14 +199,19 @@ SharkGame.Aspects = {
         level: 0,
         name: "Claw Sharpening",
         get description() {
-            return "Perhaps " + res.getResourceName("crab", false, 69) + " could collect fish if they were better equipped for hunting.";
+            return "Perhaps " + sharktext.getResourceName("crab", false, 69) + " could collect fish if they were better equipped for hunting.";
         },
         getCost(level) {
             return level + 2;
         },
         getEffect(level) {
             return (
-                res.getResourceName("crab", false, 69) + " hunt " + res.getResourceName("fish", false, 69) + " at " + 0.1 * 2 ** (level - 1) + "/s."
+                sharktext.getResourceName("crab", false, 69) +
+                " hunt " +
+                sharktext.getResourceName("fish", false, 69) +
+                " at " +
+                0.1 * 2 ** (level - 1) +
+                "/s."
             );
         },
         getUnlocked() {},
@@ -227,13 +235,15 @@ SharkGame.Aspects = {
         level: 0,
         name: "Crustacean Aptitude",
         get description() {
-            return res.getResourceName("crab", false, 69) + " are flexible. They'll do whatever we need them to.";
+            return sharktext.getResourceName("crab", false, 69) + " are flexible. They'll do whatever we need them to.";
         },
         getCost(level) {
             return 2 * level + 5;
         },
         getEffect(level) {
-            return res.getResourceName("crab", false, 69) + " and their professions collect world-specific resources " + (level + 1) + "x faster.";
+            return (
+                sharktext.getResourceName("crab", false, 69) + " and their professions collect world-specific resources " + (level + 1) + "x faster."
+            );
         },
         getUnlocked() {},
         prerequisites: ["clawSharpening"],
@@ -256,12 +266,27 @@ SharkGame.Aspects = {
         max: 4,
         level: 0,
         name: "Constructed Conception",
-        description: "Making new sharks and crabs could be more efficient. It doesn't hurt to use a little essence to help out.",
+        get description() {
+            return (
+                "Making new " +
+                sharktext.getResourceName("shark", false, 69) +
+                " and " +
+                sharktext.getResourceName("ray", false, 69) +
+                " could be more efficient. It doesn't hurt to use a little essence to help out."
+            );
+        },
         getCost(level) {
             return 2 * level + 4;
         },
         getEffect(level) {
-            return res.getResourceName("nurse", false, 69) + " and " + res.getResourceName("maker", false, 69) + " are " + (level + 1) + "x faster.";
+            return (
+                sharktext.getResourceName("nurse", false, 69) +
+                " and " +
+                sharktext.getResourceName("maker", false, 69) +
+                " are " +
+                (level + 1) +
+                "x faster."
+            );
         },
         getUnlocked() {
             return gateway.completedWorlds.includes("haven") ? "" : "Complete the Haven worldtype to unlock this aspect.";
@@ -314,11 +339,11 @@ SharkGame.Aspects = {
         },
         getEffect(_level) {
             return (
-                res.getResourceName("crystalMiner", false, 2) +
+                sharktext.getResourceName("crystalMiner", false, 2) +
                 " and " +
-                res.getResourceName("sandDigger") +
+                sharktext.getResourceName("sandDigger") +
                 " have non-" +
-                res.getResourceName("sharkonium") +
+                sharktext.getResourceName("sharkonium") +
                 " costs reduced by half."
             );
         },
@@ -334,7 +359,7 @@ SharkGame.Aspects = {
         width: 40,
         height: 40,
 
-        max: 5,
+        max: 4,
         level: 0,
         name: "Destiny Gamble",
         description: "Where we end up is all luck, but sometimes, we can stack the deck.",
@@ -343,7 +368,7 @@ SharkGame.Aspects = {
                 case 0:
                     return 1;
                 default:
-                    return 3 * level;
+                    return 2 * level;
             }
         },
         getEffect(level) {
@@ -355,6 +380,15 @@ SharkGame.Aspects = {
         prerequisites: ["pathOfEnlightenment"],
         clicked(_event) {
             tree.increaseLevel(this);
+        },
+        apply(when) {
+            if (when === "levelUp") {
+                if (_.isUndefined(SharkGame.persistentFlags.destinyRolls)) {
+                    SharkGame.persistentFlags.destinyRolls = this.level;
+                } else {
+                    SharkGame.persistentFlags.destinyRolls += 1;
+                }
+            }
         },
     },
     crystallineSkin: {
@@ -379,12 +413,9 @@ SharkGame.Aspects = {
             tree.increaseLevel(this);
         },
         apply(when) {
-            if (
-                when === "init" &&
-                SharkGame.timestampSimulated + SharkGame.timestampLastSave - 2 * SharkGame.timestampRunStart < 1000 &&
-                res.getResource("crystal") === 0
-            ) {
+            if (when === "init" && res.getResource("crystal") === 0 && !SharkGame.flags.crystallineSkinApplied) {
                 res.changeResource("crystal", 20 * this.level ** 2);
+                SharkGame.flags.crystallineSkinApplied = true;
             }
         },
     },
@@ -404,11 +435,11 @@ SharkGame.Aspects = {
         getEffect(level) {
             return (
                 "Unlocks a button to manually gather " +
-                res.getResourceName("crystal", false, 420) +
+                sharktext.getResourceName("crystal", false, 420) +
                 ". " +
                 0.01 * level * SharkGame.Aspects.apotheosis.level +
                 " " +
-                res.getResourceName("crystal", false, 420) +
+                sharktext.getResourceName("crystal", false, 420) +
                 " per click."
             );
         },

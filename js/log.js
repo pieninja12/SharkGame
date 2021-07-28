@@ -2,13 +2,51 @@
 SharkGame.Log = {
     initialised: false,
     messages: [],
+    totalCount: 0,
 
     init() {
-        // create log
-        $("#log").append("<h3>Log<h3/>").append("<button id='clearLog' class='min close-button'>✕</button>").append("<ul id='messageList'></ul>");
-        // add clear button
-        $("#clearLog").on("click", log.clearMessages);
+        this.moveLog();
         log.initialised = true;
+    },
+
+    moveLog() {
+        $("#log").remove();
+        const logDiv = $("<div id='log'></div>");
+
+        switch (SharkGame.Settings.current.logLocation) {
+            case "left":
+                $("#sidebar").append(logDiv.append("<h3>Log<h3/>").append($("<ul id='messageList'></ul>").addClass("forLeftSide")));
+                $("#buttonList").removeClass("smallerMargin");
+                $("#wrapper").removeClass("topLogActive");
+                $("#titlebackground").removeClass("topLogActive");
+                break;
+            case "top":
+                $("#titlebar").append(logDiv);
+                logDiv
+                    .append($("<button id='extendLog' class='min close-button'>⯆</button>").on("click", log.toggleExtendedLog))
+                    .append("<ul id='messageList'></ul>");
+                $("#buttonList").removeClass("smallerMargin");
+                $("#wrapper").addClass("topLogActive");
+                $("#titlebackground").addClass("topLogActive");
+                break;
+            default:
+                $("#rightLogContainer").append(logDiv.append("<h3>Log<h3/>").append($("<ul id='messageList'></ul>").addClass("forRightSide")));
+                $("#buttonList").addClass("smallerMargin");
+                $("#wrapper").removeClass("topLogActive");
+                $("#titlebackground").removeClass("topLogActive");
+        }
+
+        const prevMessages = _.cloneDeep(log.messages);
+        log.messages = [];
+        _.each(prevMessages, (message) => {
+            if (message.hasClass("discovery")) {
+                log.addDiscovery(message.html());
+            } else if (message.hasClass("error")) {
+                log.addError(message.html());
+            } else {
+                log.addMessage(message.html());
+            }
+        });
     },
 
     addMessage(message) {
@@ -18,6 +56,11 @@ SharkGame.Log = {
             log.init();
         }
         const messageItem = $("<li>").html(message);
+
+        if (this.totalCount % 2 === 1) {
+            messageItem.addClass("evenMessage");
+        }
+
         if (showAnims) {
             messageItem.hide().css("opacity", 0).prependTo("#messageList").slideDown(50).animate({ opacity: 1.0 }, 100);
         } else {
@@ -26,6 +69,8 @@ SharkGame.Log = {
         log.messages.push(messageItem);
 
         log.correctLogLength();
+
+        this.totalCount += 1;
 
         return messageItem;
     },
@@ -76,6 +121,20 @@ SharkGame.Log = {
         // wipe array
         log.messages = [];
         if (logThing) log.addMessage("Log cleared.");
+    },
+
+    toggleExtendedLog() {
+        const title = $("#title");
+        const messageList = $("#messageList");
+        if (messageList.hasClass("scrollable")) {
+            title.removeClass("biggerTitleDiv");
+            messageList.removeClass("scrollable");
+            $("#extendLog").html("⯆");
+        } else {
+            title.addClass("biggerTitleDiv");
+            messageList.addClass("scrollable");
+            $("#extendLog").html("⯅");
+        }
     },
 
     haveAnyMessages() {

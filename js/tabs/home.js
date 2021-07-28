@@ -385,6 +385,9 @@ SharkGame.Home = {
         if (SharkGame.Settings.current.showTabImages) {
             tabMessage.css("background-image", "url('" + home.tabBg + "')");
         }
+        if (SharkGame.Settings.current.logLocation === "right") {
+            buttonList.addClass("smallerMargin");
+        }
     },
 
     discoverActions() {
@@ -570,7 +573,7 @@ SharkGame.Home = {
         home.updateMessage();
 
         // update hovering messages
-        if (document.getElementById("tooltipbox").className.split(" ").includes("forHomeButton")) {
+        if (document.getElementById("tooltipbox").className.split(" ").includes("forHomeButtonOrGrotto")) {
             if (document.getElementById("tooltipbox").attributes.current) {
                 home.onHomeHover(null, document.getElementById("tooltipbox").attributes.current.value);
             }
@@ -578,7 +581,7 @@ SharkGame.Home = {
     },
 
     updateButton(actionName) {
-        const amountToBuy = main.getBuyAmount();
+        const amountToBuy = sharkmath.getBuyAmount();
 
         const button = $("#" + actionName);
         const actionData = SharkGame.HomeActions.getActionData(SharkGame.HomeActions.getActionTable(), actionName);
@@ -614,7 +617,7 @@ SharkGame.Home = {
 
         let label = actionData.name;
         if (!$.isEmptyObject(actionCost) && amount > 1) {
-            label += " (" + main.beautify(amount) + ")";
+            label += " (" + sharktext.beautify(amount) + ")";
         }
 
         if (enableButton) {
@@ -627,17 +630,11 @@ SharkGame.Home = {
         if (_.some(actionCost, (cost) => cost === Infinity)) {
             label += "<br>Maxed out";
         } else {
-            const costText = res.resourceListToString(actionCost, !enableButton, SharkGame.getElementColor(actionName, "background-color"));
+            const costText = sharktext.resourceListToString(actionCost, !enableButton, sharkcolor.getElementColor(actionName, "background-color"));
             if (costText !== "") {
                 label += "<br>Cost: " + costText;
             }
         }
-
-        /*
-        if (document.querySelector("#wrapper button.hoverbutton:hover") === null) {
-            home.onHomeUnhover();
-        }
-        */
 
         label = $('<span id="' + actionName + 'Label" class="click-passthrough">' + label + "</span>");
 
@@ -679,39 +676,45 @@ SharkGame.Home = {
     },
 
     areActionPrereqsMet(actionName) {
-        let prereqsMet = true; // assume true until proven false
         const action = SharkGame.HomeActions.getActionData(SharkGame.HomeActions.getActionTable(), actionName);
         if (action.unauthorized) {
             return false;
         }
         // check to see if this action should be forcibly removed
-        if (action.removedBy) {
-            prereqsMet = !home.shouldRemoveHomeButton(action);
+        if (action.removedBy && home.shouldRemoveHomeButton(action)) {
+            return false;
         }
 
         // check resource prerequisites
-        if (action.prereq.resource) {
-            prereqsMet &&= res.checkResources(action.prereq.resource, true);
+        if (action.prereq.resource && !res.checkResources(action.prereq.resource, true)) {
+            return false;
         }
 
         // check if resource cost exists
-        prereqsMet &&= _.every(action.cost, (cost) => world.doesResourceExist(cost.resource));
+        if (!_.every(action.cost, (cost) => world.doesResourceExist(cost.resource))) {
+            return false;
+        }
 
         // check special worldtype prereqs
-        if (action.prereq.world) {
-            prereqsMet &&= world.worldType === action.prereq.world;
+        if (action.prereq.world && world.worldType !== action.prereq.world) {
+            return false;
         }
 
         // check the special worldtype exclusions
-        if (action.prereq.notWorlds) {
-            prereqsMet &&= !action.prereq.notWorlds.includes(world.worldType);
+        if (action.prereq.notWorlds && action.prereq.notWorlds.includes(world.worldType)) {
+            return false;
         }
 
         // check upgrade prerequisites
-        prereqsMet &&= _.every(action.prereq.upgrade, (upgradeId) => SharkGame.Upgrades.purchased.includes(upgradeId));
+        if (!_.every(action.prereq.upgrade, (upgradeId) => SharkGame.Upgrades.purchased.includes(upgradeId))) {
+            return false;
+        }
         // check if resulting resource exists
-        prereqsMet &&= _.every(action.effect.resource, (_amount, resourceId) => world.doesResourceExist(resourceId));
-        return prereqsMet;
+        if (!_.every(action.effect.resource, (_amount, resourceId) => world.doesResourceExist(resourceId))) {
+            return false;
+        }
+        // if nothing fails, return true
+        return true;
     },
 
     shouldRemoveHomeButton(action) {
@@ -742,6 +745,7 @@ SharkGame.Home = {
             home.onHomeHover,
             home.onHomeUnhover
         );
+        buttonSelector.html($("<span id='" + actionName + "Label' class='click-passthrough'></span>"));
         home.updateButton(actionName);
         if (SharkGame.Settings.current.showAnimations) {
             buttonSelector.hide().css("opacity", 0).slideDown(50).animate({ opacity: 1.0 }, 50);
@@ -750,6 +754,7 @@ SharkGame.Home = {
             buttonSelector.addClass("newlyDiscovered");
         }
     },
+
     getActionCategory(actionName) {
         return _.findKey(SharkGame.HomeActionCategories, (category) => {
             return _.some(category.actions, (action) => action === actionName);
@@ -757,7 +762,7 @@ SharkGame.Home = {
     },
 
     onHomeButton() {
-        const amountToBuy = main.getBuyAmount();
+        const amountToBuy = sharkmath.getBuyAmount();
         // get related entry in home button table
         const button = $(this);
         if (button.hasClass("disabled")) return;
@@ -835,22 +840,18 @@ SharkGame.Home = {
         }
         const effects = SharkGame.HomeActions.getActionData(SharkGame.HomeActions.getActionTable(), actionName).effect;
         const validGenerators = {};
-        if (effects.resource) {
-            $.each(effects.resource, (resource) => {
-                if (SharkGame.ResourceMap.get(resource).income) {
-                    $.each(SharkGame.ResourceMap.get(resource).income, (incomeResource) => {
-                        const genAmount = res.getProductAmountFromGeneratorResource(resource, incomeResource, 1);
-                        if (genAmount !== 0 && world.doesResourceExist(incomeResource)) {
-                            validGenerators[incomeResource] = genAmount;
-                        }
-                    });
+        $.each(effects.resource, (resource) => {
+            $.each(SharkGame.ResourceMap.get(resource).income, (incomeResource) => {
+                const genAmount = res.getProductAmountFromGeneratorResource(resource, incomeResource, 1);
+                if (genAmount !== 0 && world.doesResourceExist(incomeResource)) {
+                    validGenerators[incomeResource] = genAmount;
                 }
             });
-        }
+        });
 
         let buyingHowMuch = 1;
         if (!SharkGame.Settings.current.alwaysSingularTooltip) {
-            buyingHowMuch = res.getPurchaseAmount(
+            buyingHowMuch = sharkmath.getPurchaseAmount(
                 "doesntmatter",
                 home.getMax(SharkGame.HomeActions.getActionData(SharkGame.HomeActions.getActionTable(), actionName))
             );
@@ -859,114 +860,208 @@ SharkGame.Home = {
             }
         }
 
-        let appendedProduce = false;
-        let appendedConsume = false;
-        let appendedMultiply = false;
-        let appendedExponentiate = false;
+        const usePlural = buyingHowMuch > 1 || _.keys(effects.resource).length > 1 || _.some(effects.resource, (amount) => amount > 1);
+        let addedAnyLabelsYet = false; // this keeps track of whether or not little tooltip text has already been appended
+
+        // append valid stuff for generators like production
         let text = "";
+
+        if (_.some(validGenerators, (amount) => amount > 0)) {
+            addedAnyLabelsYet = true;
+            text += "<span class='littleTooltipText'>PRODUCE" + (usePlural ? "" : "S") + "</span><br/>";
+        }
 
         $.each(validGenerators, (incomeResource, amount) => {
             if (amount > 0) {
-                if (!appendedProduce) {
-                    appendedProduce = true;
-                    text += "<span class='littleTooltipText'>PRODUCE" + (buyingHowMuch >= 2 ? "" : "S") + "</span><br/>";
-                }
                 text +=
-                    main
+                    sharktext
                         .beautifyIncome(
                             buyingHowMuch * amount,
-                            " " + res.getResourceName(incomeResource, false, false, SharkGame.getElementColor("tooltipbox", "background-color"))
+                            " " +
+                                sharktext.getResourceName(incomeResource, false, false, sharkcolor.getElementColor("tooltipbox", "background-color"))
                         )
                         .bold() + "<br/>";
             }
         });
+
+        if (_.some(validGenerators, (amount) => amount < 0)) {
+            addedAnyLabelsYet = true;
+            text += "<span class='littleTooltipText'>" + (addedAnyLabelsYet ? "and " : "") + "CONSUME" + (usePlural ? "" : "S") + "</span><br/>";
+        }
 
         $.each(validGenerators, (incomeResource, amount) => {
             if (amount < 0) {
-                if (!appendedConsume) {
-                    appendedConsume = true;
-                    text += "<span class='littleTooltipText'>CONSUME" + (buyingHowMuch >= 2 ? "" : "S") + "</span><br/>";
-                }
                 text +=
-                    main
+                    sharktext
                         .beautifyIncome(
                             -buyingHowMuch * amount,
-                            " " + res.getResourceName(incomeResource, false, false, SharkGame.getElementColor("tooltipbox", "background-color"))
+                            " " +
+                                sharktext.getResourceName(incomeResource, false, false, sharkcolor.getElementColor("tooltipbox", "background-color"))
                         )
                         .bold() + "<br/>";
             }
         });
 
-        $.each(effects.resource, (resource) => {
-            $.each(SharkGame.ResourceIncomeAffectors[resource], (type, object) => {
-                $.each(object, (affected, degree) => {
-                    //FIXME: This system is NOT compatible with kinds of resources that have both 'increase' and 'decrease' entries in the affector table.
-                    if (type === "multiply") {
-                        if (!appendedMultiply) {
-                            appendedMultiply = true;
-                            if (degree > 0) {
-                                text += "<span class='littleTooltipText'>INCREASE" + (buyingHowMuch >= 2 ? "" : "S") + "</span><br/>";
-                            } else {
-                                text += "<span class='littleTooltipText'>DECREASE" + (buyingHowMuch >= 2 ? "" : "S") + "</span><br/>";
-                            }
-                        }
-                        text +=
-                            "all ".bold() +
-                            res.getResourceName(affected, false, false, SharkGame.getElementColor("tooltipbox", "background-color")) +
-                            " gains ".bold() +
-                            " by " +
-                            (Math.round(buyingHowMuch * degree * 100) + "%").bold() +
-                            "<br>";
-                    }
-                    if (type === "exponentiate") {
-                        if (!appendedExponentiate) {
-                            appendedExponentiate = true;
-                            if (degree > 1) {
-                                text +=
-                                    "<span class='littleTooltipText'>MULTIPLICATIVELY INCREASE" + (buyingHowMuch >= 2 ? "" : "S") + "</span><br/>";
-                            } else if (degree < 1) {
-                                text +=
-                                    "<span class='littleTooltipText'>MULTIPLICATIVELY DECREASE" + (buyingHowMuch >= 2 ? "" : "S") + "</span><br/>";
-                            } else {
-                                return true;
-                            }
-                        }
-                        degree = degree < 1 ? 1 - degree ** buyingHowMuch : degree ** buyingHowMuch - 1;
-                        text +=
-                            "all ".bold() +
-                            res.getResourceName(affected, false, false, SharkGame.getElementColor("tooltipbox", "background-color")) +
-                            " gains ".bold() +
-                            " by " +
-                            (Math.round(degree * 100) + "%").bold() +
-                            "<br>";
-                    }
-                });
+        const condensedObject = res.condenseNode(effects.resource);
+
+        if (!$.isEmptyObject(condensedObject.resAffect.increase)) {
+            text += "<span class='littleTooltipText'>" + (addedAnyLabelsYet ? "and " : "") + "INCREASE" + (usePlural ? "" : "S") + "</span><br/>";
+            addedAnyLabelsYet = true;
+            $.each(condensedObject.resAffect.increase, (affectedResource, degreePerPurchase) => {
+                text +=
+                    sharktext.boldString("all ") +
+                    sharktext.getResourceName(affectedResource, false, false, sharkcolor.getElementColor("tooltipbox", "background-color")) +
+                    sharktext.boldString(" gains ") +
+                    " by " +
+                    sharktext.boldString(Math.round(buyingHowMuch * degreePerPurchase * 100) + "%") +
+                    "<br>";
             });
-        });
+        }
+
+        if (!$.isEmptyObject(condensedObject.resAffect.decrease)) {
+            text += "<span class='littleTooltipText'>" + (addedAnyLabelsYet ? "and " : "") + "DECREASE" + (usePlural ? "" : "S") + "</span><br/>";
+            addedAnyLabelsYet = true;
+            $.each(condensedObject.resAffect.decrease, (affectedResource, degreePerPurchase) => {
+                text +=
+                    sharktext.boldString("all ") +
+                    sharktext.getResourceName(affectedResource, false, false, sharkcolor.getElementColor("tooltipbox", "background-color")) +
+                    sharktext.boldString(" gains ") +
+                    " by " +
+                    sharktext.boldString(Math.round(buyingHowMuch * degreePerPurchase * 100) + "%") +
+                    "<br>";
+            });
+        }
+
+        if (!$.isEmptyObject(condensedObject.resAffect.multincrease)) {
+            text +=
+                "<span class='littleTooltipText'>" +
+                (addedAnyLabelsYet ? "and " : "") +
+                "MULTIPLICATIVELY INCREASE" +
+                (usePlural ? "" : "S") +
+                "</span><br/>";
+            addedAnyLabelsYet = true;
+            $.each(condensedObject.resAffect.multincrease, (affectedResource, degreePerPurchase) => {
+                degreePerPurchase = degreePerPurchase ** buyingHowMuch - 1;
+                text +=
+                    sharktext.boldString("all ") +
+                    sharktext.getResourceName(affectedResource, false, false, sharkcolor.getElementColor("tooltipbox", "background-color")) +
+                    sharktext.boldString(" gains ") +
+                    " by " +
+                    sharktext.boldString(Math.round(degreePerPurchase * 100) + "%") +
+                    "<br>";
+            });
+        }
+
+        if (!$.isEmptyObject(condensedObject.resAffect.multdecrease)) {
+            text +=
+                "<span class='littleTooltipText'>" +
+                (addedAnyLabelsYet ? "and " : "") +
+                "MULTIPLICATIVELY DECREASE" +
+                (usePlural ? "" : "S") +
+                "</span><br/>";
+            addedAnyLabelsYet = true;
+            $.each(condensedObject.resAffect.multdecrease, (affectedResource, degreePerPurchase) => {
+                degreePerPurchase = 1 - degreePerPurchase ** buyingHowMuch;
+                text +=
+                    sharktext.boldString("all ") +
+                    sharktext.getResourceName(affectedResource, false, false, sharkcolor.getElementColor("tooltipbox", "background-color")) +
+                    sharktext.boldString(" gains ") +
+                    " by " +
+                    sharktext.boldString(Math.round(degreePerPurchase * 100) + "%") +
+                    "<br>";
+            });
+        }
+
+        if (!$.isEmptyObject(condensedObject.genAffect.increase)) {
+            text += "<span class='littleTooltipText'>" + (addedAnyLabelsYet ? "and " : "") + "INCREASE" + (usePlural ? "" : "S") + "</span><br/>";
+            addedAnyLabelsYet = true;
+            $.each(condensedObject.genAffect.increase, (affectedGenerator, degreePerPurchase) => {
+                text +=
+                    sharktext.getResourceName(affectedGenerator, false, false, sharkcolor.getElementColor("tooltipbox", "background-color")) +
+                    sharktext.boldString(" income ") +
+                    " by " +
+                    sharktext.boldString(Math.round(buyingHowMuch * degreePerPurchase * 100) + "%") +
+                    "<br>";
+            });
+        }
+
+        if (!$.isEmptyObject(condensedObject.genAffect.decrease)) {
+            text += "<span class='littleTooltipText'>" + (addedAnyLabelsYet ? "and " : "") + "DECREASE" + (usePlural ? "" : "S") + "</span><br/>";
+            addedAnyLabelsYet = true;
+            $.each(condensedObject.genAffect.decrease, (affectedGenerator, degreePerPurchase) => {
+                text +=
+                    sharktext.getResourceName(affectedGenerator, false, false, sharkcolor.getElementColor("tooltipbox", "background-color")) +
+                    sharktext.boldString(" income ") +
+                    " by " +
+                    sharktext.boldString(Math.round(buyingHowMuch * degreePerPurchase * 100) + "%") +
+                    "<br>";
+            });
+        }
+
+        if (!$.isEmptyObject(condensedObject.genAffect.multincrease)) {
+            text +=
+                "<span class='littleTooltipText'>" +
+                (addedAnyLabelsYet ? "and " : "") +
+                "MULTIPLICATIVELY INCREASE" +
+                (usePlural ? "" : "S") +
+                "</span><br/>";
+            addedAnyLabelsYet = true;
+            $.each(condensedObject.genAffect.multincrease, (affectedGenerator, degreePerPurchase) => {
+                degreePerPurchase = degreePerPurchase ** buyingHowMuch - 1;
+                text +=
+                    sharktext.getResourceName(affectedGenerator, false, false, sharkcolor.getElementColor("tooltipbox", "background-color")) +
+                    sharktext.boldString(" income ") +
+                    " by " +
+                    sharktext.boldString(Math.round(degreePerPurchase * 100) + "%") +
+                    "<br>";
+            });
+        }
+
+        if (!$.isEmptyObject(condensedObject.genAffect.multdecrease)) {
+            text +=
+                "<span class='littleTooltipText'>" +
+                (addedAnyLabelsYet ? "and " : "") +
+                "MULTIPLICATIVELY DECREASE" +
+                (usePlural ? "" : "S") +
+                "</span><br/>";
+            addedAnyLabelsYet = true;
+            $.each(condensedObject.genAffect.multdecrease, (affectedGenerator, degreePerPurchase) => {
+                degreePerPurchase = 1 - degreePerPurchase ** buyingHowMuch;
+                text +=
+                    sharktext.getResourceName(affectedGenerator, false, false, sharkcolor.getElementColor("tooltipbox", "background-color")) +
+                    sharktext.boldString(" income ") +
+                    " by " +
+                    sharktext.boldString(Math.round(degreePerPurchase * 100) + "%") +
+                    "<br>";
+            });
+        }
 
         if (SharkGame.HomeActions.getActionTable()[actionName].helpText) {
-            text += "<span class='medDesc'>" + SharkGame.HomeActions.getActionTable()[actionName].helpText + "</span>";
+            text +=
+                "<hr class='hrForTooltipSeparation'><span class='medDesc'>" + SharkGame.HomeActions.getActionTable()[actionName].helpText + "</span>";
         }
 
         $.each(effects.resource, (resource, amount) => {
-            if (buyingHowMuch * amount >= 2) {
+            if (buyingHowMuch * amount !== 1) {
                 text =
-                    main.beautify(buyingHowMuch * amount).bold() +
+                    sharktext.beautify(buyingHowMuch * amount).bold() +
                     " " +
-                    res.getResourceName(resource, false, buyingHowMuch * amount, SharkGame.getElementColor("tooltipbox", "background-color")).bold() +
+                    sharktext
+                        .getResourceName(resource, false, buyingHowMuch * amount, sharkcolor.getElementColor("tooltipbox", "background-color"))
+                        .bold() +
                     "<br>" +
                     (SharkGame.Settings.current.tooltipQuantityReminders
-                        ? "<span class='medDesc littleTooltipText'>(you have " + main.beautify(res.getResource(resource)) + ")</span><br>"
+                        ? "<span class='medDesc littleTooltipText'>(you have " + sharktext.beautify(res.getResource(resource)) + ")</span><br>"
                         : "") +
                     text;
             } else {
-                const determiner = main.getDeterminer(resource);
+                const determiner = sharktext.getDeterminer(resource);
                 text =
                     (determiner ? determiner + " " : "") +
-                    res.getResourceName(resource, false, 1, SharkGame.getElementColor("tooltipbox", "background-color")).bold() +
+                    sharktext.getResourceName(resource, false, 1, sharkcolor.getElementColor("tooltipbox", "background-color")).bold() +
                     "<br>" +
                     (SharkGame.Settings.current.tooltipQuantityReminders
-                        ? "<span class='medDesc littleTooltipText'>(you have " + main.beautify(res.getResource(resource)) + ")</span><br>"
+                        ? "<span class='medDesc littleTooltipText'>(you have " + sharktext.beautify(res.getResource(resource)) + ")</span><br>"
                         : "") +
                     text;
             }
@@ -975,13 +1070,13 @@ SharkGame.Home = {
         if (document.getElementById("tooltipbox").innerHTML !== text.replace(/'/g, '"')) {
             document.getElementById("tooltipbox").innerHTML = text;
         }
-        $(".tooltip").removeClass("forIncomeTable").attr("current", "");
-        $("#tooltipbox").addClass("forHomeButton").attr("current", actionName);
+        $("#tooltipbox").removeClass("forIncomeTable").attr("current", "");
+        $("#tooltipbox").addClass("forHomeButtonOrGrotto").attr("current", actionName);
     },
 
     onHomeUnhover() {
         document.getElementById("tooltipbox").innerHTML = "";
-        $("#tooltipbox").removeClass("forHomeButton").attr("current", "");
+        $("#tooltipbox").removeClass("forHomeButtonOrGrotto").attr("current", "");
     },
 
     getCost(action, amount) {
@@ -995,13 +1090,13 @@ SharkGame.Home = {
             let cost = 0;
             switch (costObj.costFunction) {
                 case "constant":
-                    cost = SharkGame.MathUtil.constantCost(currAmount, currAmount + amount, priceIncrease);
+                    cost = sharkmath.constantCost(currAmount, currAmount + amount, priceIncrease);
                     break;
                 case "linear":
-                    cost = SharkGame.MathUtil.linearCost(currAmount, currAmount + amount, priceIncrease);
+                    cost = sharkmath.linearCost(currAmount, currAmount + amount, priceIncrease);
                     break;
                 case "unique":
-                    cost = SharkGame.MathUtil.uniqueCost(currAmount, currAmount + amount, priceIncrease);
+                    cost = sharkmath.uniqueCost(currAmount, currAmount + amount, priceIncrease);
                     break;
             }
             if (Math.abs(cost - Math.round(cost)) < SharkGame.EPSILON) {
@@ -1015,8 +1110,7 @@ SharkGame.Home = {
     getMax(action) {
         let max = 1;
         if (action.max) {
-            // max is really ambiguous
-            // its used as the determining resource for linear cost functions
+            // max is used as the determining resource for linear cost functions
             const resource = SharkGame.PlayerResources.get(action.max);
             const currAmount = resource.amount;
             max = Number.MAX_VALUE;
@@ -1027,13 +1121,13 @@ SharkGame.Home = {
                 let subMax = -1;
                 switch (costObject.costFunction) {
                     case "constant":
-                        subMax = SharkGame.MathUtil.constantMax(0, costResource, priceIncrease);
+                        subMax = sharkmath.constantMax(0, costResource, priceIncrease);
                         break;
                     case "linear":
-                        subMax = SharkGame.MathUtil.linearMax(currAmount, costResource, priceIncrease) - currAmount;
+                        subMax = sharkmath.linearMax(currAmount, costResource, priceIncrease) - currAmount;
                         break;
                     case "unique":
-                        subMax = SharkGame.MathUtil.uniqueMax(currAmount, costResource, priceIncrease) - currAmount;
+                        subMax = sharkmath.uniqueMax(currAmount, costResource, priceIncrease) - currAmount;
                         break;
                 }
                 // prevent flashing action costs

@@ -50,10 +50,31 @@ SharkGame.Settings = {
         onChange() {
             if (SharkGame.Settings.current["minimizedTopbar"]) {
                 document.querySelector("body").classList.add("top-bar");
+                $("#wrapper").removeClass("notMinimized");
             } else {
                 document.querySelector("body").classList.remove("top-bar");
+                $("#wrapper").addClass("notMinimized");
             }
         },
+    },
+
+    logLocation: {
+        defaultSetting: "right",
+        name: "Log Location",
+        desc: "Where to put the log.",
+        category: "LAYOUT",
+        options: ["right", "left", "top"],
+        onChange() {
+            log.moveLog();
+        },
+    },
+
+    doAspectTable: {
+        defaultSetting: "tree",
+        name: "Aspect Table or Tree",
+        desc: "Whether to draw the visual aspect tree or the more accessible aspect table.",
+        category: "LAYOUT",
+        options: ["tree", "table"],
     },
 
     groupResources: {
@@ -90,11 +111,11 @@ SharkGame.Settings = {
     },
 
     logMessageMax: {
-        defaultSetting: 15,
+        defaultSetting: 30,
         name: "Max Log Messages",
         desc: "Max number of messages kept in the log.",
         category: "LAYOUT",
-        options: [5, 10, 15, 20, 30],
+        options: [5, 10, 15, 20, 30, 60],
         onChange() {
             log.correctLogLength();
         },
@@ -240,7 +261,7 @@ SharkGame.Settings = {
                 "Now autosaving every " +
                     SharkGame.Settings.current.autosaveFrequency +
                     " minute" +
-                    SharkGame.plural(SharkGame.Settings.current.autosaveFrequency) +
+                    sharktext.plural(SharkGame.Settings.current.autosaveFrequency) +
                     "."
             );
         },

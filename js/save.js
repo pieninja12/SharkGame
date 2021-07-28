@@ -43,6 +43,10 @@ SharkGame.Save = {
 
         saveData.completedWorlds = _.cloneDeep(SharkGame.Gateway.completedWorlds);
 
+        saveData.flags = _.cloneDeep(SharkGame.flags);
+        saveData.persistentFlags = _.cloneDeep(SharkGame.persistentFlags);
+        saveData.planetPool = _.cloneDeep(gateway.planetPool);
+
         // add timestamp
         saveData.timestampLastSave = _.now();
         saveData.timestampGameStart = SharkGame.timestampGameStart;
@@ -147,6 +151,14 @@ SharkGame.Save = {
             SharkGame.timestampRunEnd = saveData.timestampRunEnd;
             SharkGame.timestampSimulated = saveData.timestampLastSave;
 
+            if (saveData.flags) {
+                SharkGame.flags = saveData.flags;
+            }
+
+            if (saveData.persistentFlags) {
+                SharkGame.persistentFlags = saveData.persistentFlags;
+            }
+
             res.init();
 
             $.each(saveData.resources, (resourceId, resource) => {
@@ -215,6 +227,10 @@ SharkGame.Save = {
                 SharkGame.Gate.completedRequirements = _.cloneDeep(saveData.completedRequirements);
             }
 
+            if (saveData.planetPool) {
+                gateway.planetPool = saveData.planetPool;
+            }
+
             // recalculate income table to make sure that the grotto doesnt freak out if its the first tab that loads
             res.recalculateIncomeTable();
 
@@ -271,27 +287,27 @@ SharkGame.Save = {
                                         "almost " +
                                         (numYears === 1 ? "a" : numYears) +
                                         " year" +
-                                        SharkGame.plural(numYears) +
+                                        sharktext.plural(numYears) +
                                         ", thanks for remembering this exists!";
                                 } else {
                                     notification +=
                                         "like " +
                                         (numMonths === 1 ? "a" : numMonths) +
                                         " month" +
-                                        SharkGame.plural(numMonths) +
+                                        sharktext.plural(numMonths) +
                                         ", it's getting kinda crowded.";
                                 }
                             } else {
                                 notification +=
-                                    "about " + (numWeeks === 1 ? "a" : numWeeks) + " week" + SharkGame.plural(numWeeks) + ", you were gone a while!";
+                                    "about " + (numWeeks === 1 ? "a" : numWeeks) + " week" + sharktext.plural(numWeeks) + ", you were gone a while!";
                             }
                         } else {
                             notification +=
-                                (numDays === 1 ? "a" : numDays) + " day" + SharkGame.plural(numDays) + ", and look at all the stuff you have now!";
+                                (numDays === 1 ? "a" : numDays) + " day" + sharktext.plural(numDays) + ", and look at all the stuff you have now!";
                         }
                     } else {
                         notification +=
-                            (numHours === 1 ? "an" : numHours) + " hour" + SharkGame.plural(numHours) + " since you were seen around here!";
+                            (numHours === 1 ? "an" : numHours) + " hour" + sharktext.plural(numHours) + " since you were seen around here!";
                     }
                     log.addMessage(notification);
                 }
@@ -307,7 +323,10 @@ SharkGame.Save = {
         // load the game from this save data string
         try {
             log.clearMessages(false);
+            main.init();
             SharkGame.Save.loadGame(data);
+            main.correctTitleBar();
+            home.discoverActions();
         } catch (err) {
             log.addError(err);
         }
@@ -416,7 +435,7 @@ SharkGame.Save = {
                 logMessageMax: 15,
                 sidebarWidth: "25%",
                 showAnimations: true,
-                colorCosts: "color",
+                colorCosts: true,
             };
             save.gateCostsMet = {
                 fish: false,
@@ -790,7 +809,7 @@ SharkGame.Save = {
         function update15(save) {
             if (_.has(save, "settings.showTabHelp")) {
                 if (!_.has(save, "settings.showTooltips")) {
-                    save.settings.showTooltops = save.settings.showTabHelp;
+                    save.settings.showTooltips = save.settings.showTabHelp;
                 }
                 delete save.settings.showTabHelp;
             }
@@ -801,6 +820,21 @@ SharkGame.Save = {
             if (!_.has(save, "aspects")) {
                 save.aspects = {};
             }
+
+            return save;
+        },
+
+        // flags and colorcosts
+        function update16(save) {
+            if (save.settings.colorCosts) {
+                save.settings.colorCosts = "color";
+            } else {
+                save.settings.colorCosts = "none";
+            }
+
+            save.flags = {};
+            save.persistentFlags = {};
+            save.planetPool = [];
 
             return save;
         },
