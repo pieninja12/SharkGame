@@ -7,8 +7,11 @@ SharkGame.MathUtil = {
     // desired = desired amount
     // cost = constant price
     // returns: cost to get to b from a
-    constantCost(current, desired, cost) {
-        return (desired - current) * cost;
+    constantCost(current, difference, cost) {
+        if (typeof current === "object") {
+            return cost.times(difference);
+        }
+        return difference * cost;
     },
 
     // current = current amount
@@ -16,6 +19,10 @@ SharkGame.MathUtil = {
     // cost = constant price
     // returns: absolute max items that can be held with invested and current resources
     constantMax(current, available, cost) {
+        if (typeof current === "object") {
+            Decimal.set({ rounding: Decimal.ROUND_FLOOR });
+            return available.dividedBy(cost).plus(current);
+        }
         available = Math.floor(Math.floor(available) * (1 - 1e-9) + 0.1); //safety margin
         return available / cost + current;
     },
@@ -24,8 +31,12 @@ SharkGame.MathUtil = {
     // desired = desired amount
     // cost = cost increase per item
     // returns: cost to get to b from a
-    linearCost(current, desired, constant) {
-        return (constant / 2) * (desired * desired + desired) - (constant / 2) * (current * current + current);
+    linearCost(current, difference, constant) {
+        if (typeof current === "object") {
+            return constant.dividedBy(2).times(difference.times(difference).plus(difference).plus(current.times(2).times(difference)));
+        } else {
+            return (constant / 2) * (difference * difference + difference + 2 * difference * current);
+        }
     },
 
     // current = current amount
@@ -33,8 +44,12 @@ SharkGame.MathUtil = {
     // cost = cost increase per item
     // returns: absolute max items that can be held with invested and current resources
     linearMax(current, available, cost) {
-        available = Math.floor(Math.floor(available) * (1 - 1e-9) + 0.1); //safety margin
-        return Math.sqrt(current * current + current + (2 * available) / cost + 0.25) - 0.5;
+        if (typeof current === "object") {
+            return current.times(current).plus(current).plus(available.times(2).dividedBy(cost)).plus(0.25).squareRoot().minus(0.5);
+        } else {
+            available = Math.floor(Math.floor(available) * (1 - 1e-9)); //safety margin
+            return Math.sqrt(current * current + current + (2 * available) / cost + 0.25) - 0.5;
+        }
     },
 
     // these need to be adapted probably?
@@ -48,16 +63,24 @@ SharkGame.MathUtil = {
     // }
 
     // artificial limit - whatever has these functions for cost/max can only have one of)
-    uniqueCost(current, desired, cost) {
-        if (current < 1 && desired <= 2) {
+    uniqueCost(current, difference, cost) {
+        if (typeof current === "object") {
+            if (current.lessThan(1) && current.plus(difference).lessThanOrEqualTo(2)) {
+                return cost;
+            } else {
+                return Decimal(Number.POSITIVE_INFINITY);
+            }
+        }
+        if (current < 1 && current + difference <= 2) {
             return cost;
         } else {
             return Number.POSITIVE_INFINITY; // be careful this doesn't fuck things up
         }
     },
 
-    uniqueMax() {
-        return 1;
+    // this takes an argument to know whether or not to return a Decimal or a Number
+    uniqueMax(current) {
+        return typeof current === "object" ? Decimal(1) : 1;
     },
 
     getBuyAmount(noMaxBuy) {
@@ -101,13 +124,42 @@ SharkGame.TextUtil = {
 
         //note to self: make the next line not suck
         // Possibly add an "uncountable" property to resources somehow? Manual works fine though
-        if (["algae", "coral", "spronge", "delphinium", "coralglass", "sharkonium", "residue", "tar", "ice", "science", "papyrus"].includes(name)) {
+        if (
+            ["sand", "algae", "coral", "spronge", "delphinium", "coralglass", "sharkonium", "residue", "tar", "ice", "science", "arcana"].includes(
+                name
+            )
+        ) {
             return "";
         } else if ("aeiou".includes(firstLetter)) {
             return "an";
         } else {
             return "a";
         }
+    },
+
+    getIsOrAre(name, amount = res.getResource(name)) {
+        //should make a universal list for these somewhere in textutil, ya?
+        if (
+            [
+                "sand",
+                "algae",
+                "coral",
+                "sponge",
+                "spronge",
+                "delphinium",
+                "coralglass",
+                "sharkonium",
+                "residue",
+                "tar",
+                "ice",
+                "science",
+                "arcana",
+            ].includes(name) ||
+            amount === 1
+        ) {
+            return "is";
+        }
+        return "are";
     },
 
     /** @param {string} string */
@@ -117,7 +169,7 @@ SharkGame.TextUtil = {
 
     beautify(number, suppressDecimals, toPlaces) {
         if (cad.noNumberBeautifying) {
-            return number.toString();
+            return number.toExponential(5);
         }
 
         let formatted;
@@ -158,7 +210,15 @@ SharkGame.TextUtil = {
 
             let suffix;
             if (suffixIndex >= suffixes.length) {
-                formatted = "lots";
+                if (number > 1e290) {
+                    formatted = "max";
+                } else if (number > 1e200) {
+                    formatted = "too much";
+                } else if (number > 1e100) {
+                    formatted = "tons";
+                } else {
+                    formatted = "lots";
+                }
             } else {
                 suffix = suffixes[suffixIndex];
                 // fix number to be compliant with suffix
@@ -186,7 +246,7 @@ SharkGame.TextUtil = {
 
     beautifyIncome(number, also = "") {
         if (cad.noNumberBeautifying) {
-            return number.toString();
+            return number.toExponential(3) + also;
         }
 
         const abs = Math.abs(number);
@@ -294,12 +354,13 @@ SharkGame.TextUtil = {
             return "";
         }
         let formattedResourceList = "";
-        SharkGame.ResourceMap.forEach((_resource, resourceId) => {
-            const listResource = resourceList[resourceId];
-            // amend for unspecified resources (assume zero)
-            if (listResource > 0 && world.doesResourceExist(resourceId)) {
-                formattedResourceList += sharktext.beautify(listResource);
-                formattedResourceList += " " + sharktext.getResourceName(resourceId, darken, listResource, backgroundColor) + ", ";
+        _.each(resourceList, (resourceAmount, resourceId) => {
+            if (typeof resourceAmount === "object") {
+                resourceAmount = resourceAmount.toNumber();
+            }
+            if (resourceAmount > 0 && world.doesResourceExist(resourceId)) {
+                formattedResourceList += sharktext.beautify(resourceAmount);
+                formattedResourceList += " " + sharktext.getResourceName(resourceId, darken, resourceAmount, backgroundColor) + ", ";
             }
         });
         // snip off trailing suffix

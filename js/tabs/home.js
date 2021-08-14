@@ -29,7 +29,7 @@ SharkGame.Home = {
             },
             {
                 name: "start-ray",
-                unlock: { resource: { fish: 15 } },
+                unlock: { resource: { shark: 4 } },
                 message: "Some rays drift over.",
             },
             {
@@ -39,7 +39,7 @@ SharkGame.Home = {
             },
             {
                 name: "start-crab",
-                unlock: { resource: { shark: 4, ray: 4 } },
+                unlock: { resource: { shark: 9, ray: 4 } },
                 message: "Some curious crabs come over.",
             },
             {
@@ -111,17 +111,20 @@ SharkGame.Home = {
                 name: "haven-dolphin-observes",
                 unlock: { totalResource: { coral: 75 } },
                 message: "A... thing observes us from afar. What the heck is that??",
+                scales: true,
             },
             {
                 name: "haven-dolphins",
                 unlock: { totalResource: { dolphin: 1 }, homeAction: ["getDolphin"] },
-                message: "A dolphin joins the frenzy.<br/>It already wants a raise. Wow.",
+                message:
+                    "A dolphin joins the frenzy. We told it to go get fish, but it came back with coral.<br>It insists that the coral is more valuable.",
             },
             {
                 name: "haven-dolphin-empire",
                 unlock: { totalResource: { dolphin: 20 } },
                 message:
                     "The dolphin pods that work with us speak of a star-spanning empire of their kind.<br>They ask where our empire is. And they smile.",
+                scales: true,
             },
             {
                 name: "haven-papyrus",
@@ -252,15 +255,48 @@ SharkGame.Home = {
                 message: "The crystals are easier to find, but the darkness makes it hard to find anything else.",
             },
             {
-                name: "eel-one",
-                unlock: { resource: { eel: 10 }, homeAction: ["getEel"] },
+                name: "shrouded-eel-onlookers",
+                unlock: { upgrade: ["crystalContainer"] },
+                message: "Divers have reported sightings of 'skittish', wiggly creatures on the ocean floor.<br>What on earth...?",
+            },
+            {
+                name: "shrouded-eels",
+                unlock: { totalResource: { eel: 1 } },
                 message: "The eels chatter among their hiding places.<br>They like the sharks.",
             },
             {
-                name: "chimaera-one",
-                unlock: { resource: { chimaera: 5 }, homeAction: ["getChimaera"] },
+                name: "shrouded-distant-chimaeras",
+                unlock: { upgrade: ["exploration"] },
+                message: "In the fog of darkness, the shapes of strange creatures can be made out.<br>They dart away when light approaches.",
+            },
+            {
+                name: "shrouded-chimaeras",
+                unlock: { totalResource: { chimaera: 1 } },
                 message:
-                    "The chimaeras are ancient kin of the shark kind, reunited through wild coincidence.<br>What peerless wonders have they found in the dark?",
+                    "The chimaeras imply they are ancient kin of the shark kind, reunited through wild coincidence.<br>We don't understand, but they seem to think we do.",
+            },
+            {
+                name: "shrouded-arcana",
+                unlock: { totalResource: { arcana: 5 } },
+                message:
+                    "These hadal artifacts glow faintly, only in pitch blackness.<br>That glow makes you feel something that you don't understand.",
+            },
+            {
+                name: "shrouded-power",
+                unlock: { totalResource: { sacrifice: 100 } },
+                message:
+                    "Every broken shard disintegrates in a blinding flash of light. That familiar feeling washes over you with every sacrifice.<br>The sharp snap of broken arcana echoes in your mind.",
+            },
+            {
+                name: "shrouded-end",
+                unlock: { upgrade: ["arcaneActivation"] },
+                message: "The gate opens. It pulls, tugging at you.<br>The force is immense.",
+            },
+            {
+                name: "shrouded-essence",
+                unlock: { totalResource: { sacrifice: 1000000000000000 } },
+                message:
+                    "You see without light. You hear without sound. You feel without touching.<br>Everything pelts you from every direction. You can't make sense of it anymore. Any of it. It feels like it's all breaking down around you.<br>",
             },
         ],
 
@@ -283,6 +319,7 @@ SharkGame.Home = {
                 name: "frigid-distant-village",
                 unlock: { totalResource: { science: 8 } },
                 message: "While scanning the horizon, you notice a gap in the ice.<br>You peer through it, and spot something else.",
+                scales: true,
             },
             {
                 name: "frigid-village",
@@ -306,11 +343,13 @@ SharkGame.Home = {
                 unlock: { totalResource: { squid: 125 } },
                 message:
                     "In the center of the settlement lies a vibrating...thing, and a strange gate.<br>The thing buzzes loudly, casting enormous energy across the water.",
+                scales: true,
             },
             {
                 name: "frigid-squid",
                 unlock: { totalResource: { squid: 250 } },
                 message: "The squid speak of an ancient visitor who saved their world.<br>They ask if you too, have seen this visitor.",
+                scales: true,
             },
             {
                 name: "frigid-suspicion",
@@ -348,7 +387,7 @@ SharkGame.Home = {
         const tabName = SharkGame.WorldTypes[world.worldType].name + " Ocean";
         home.tabName = tabName;
 
-        main.registerTab(this);
+        SharkGame.TabHandler.registerTab(this);
 
         // populate action discoveries (and reset removals)
         _.each(SharkGame.HomeActions.getActionTable(), (actionData) => {
@@ -485,19 +524,26 @@ SharkGame.Home = {
             // check if all requirements met
             if (_.has(extraMessage, "unlock")) {
                 let requirementsMet = true;
-                requirementsMet &&= _.every(
-                    extraMessage.unlock.resource,
-                    (requiredAmount, resourceId) => res.getResource(resourceId) >= requiredAmount
-                );
-                requirementsMet &&= _.every(
-                    extraMessage.unlock.totalResource,
-                    (requiredAmount, resourceId) => res.getTotalResource(resourceId) >= requiredAmount
-                );
-                requirementsMet &&= _.every(extraMessage.unlock.upgrade, (upgradeId) => SharkGame.Upgrades.purchased.includes(upgradeId));
-                requirementsMet &&= _.every(extraMessage.unlock.homeAction, (actionName) => {
-                    const action = SharkGame.HomeActions.getActionData(SharkGame.HomeActions.getActionTable(), actionName);
-                    return action.discovered && !action.newlyDiscovered;
-                });
+                requirementsMet =
+                    requirementsMet &&
+                    _.every(extraMessage.unlock.resource, (requiredAmount, resourceId) => {
+                        requiredAmount *= extraMessage.scales ? main.getProgressionConstant() : 1;
+                        return res.getResource(resourceId) >= requiredAmount;
+                    });
+                requirementsMet =
+                    requirementsMet &&
+                    _.every(extraMessage.unlock.totalResource, (requiredAmount, resourceId) => {
+                        requiredAmount *= extraMessage.scales ? main.getProgressionConstant() : 1;
+                        return res.getTotalResource(resourceId) >= requiredAmount;
+                    });
+                requirementsMet =
+                    requirementsMet && _.every(extraMessage.unlock.upgrade, (upgradeId) => SharkGame.Upgrades.purchased.includes(upgradeId));
+                requirementsMet =
+                    requirementsMet &&
+                    _.every(extraMessage.unlock.homeAction, (actionName) => {
+                        const action = SharkGame.HomeActions.getActionData(SharkGame.HomeActions.getActionTable(), actionName);
+                        return action.discovered && !action.newlyDiscovered;
+                    });
                 return requirementsMet;
             }
             return true;
@@ -581,7 +627,7 @@ SharkGame.Home = {
     },
 
     updateButton(actionName) {
-        const amountToBuy = sharkmath.getBuyAmount();
+        const amountToBuy = Decimal(sharkmath.getBuyAmount());
 
         const button = $("#" + actionName);
         const actionData = SharkGame.HomeActions.getActionData(SharkGame.HomeActions.getActionTable(), actionName);
@@ -595,29 +641,34 @@ SharkGame.Home = {
             }
         }
         let amount = amountToBuy;
-        let actionCost;
-        if (amountToBuy < 0) {
-            const max = Math.floor(home.getMax(actionData));
-            // convert divisor from a negative number to a positive fraction
-            const divisor = 1 / (Math.floor(amountToBuy) * -1);
-            amount = max * divisor;
-            amount = Math.floor(amount);
-            if (amount < 1) amount = 1;
-            actionCost = home.getCost(actionData, amount);
-        } else {
-            actionCost = home.getCost(actionData, amountToBuy);
+        let enableButton = true;
+        if (amountToBuy.lessThan(0)) {
+            // unlimited mode, calculate the highest we can go
+            const max = home.getMax(actionData);
+            const divisor = Decimal(1).dividedBy(amountToBuy.times(-1));
+            amount = max.times(divisor);
+            Decimal.set({ rounding: Decimal.ROUND_FLOOR });
+            amount = amount.round();
+            if (amount.lessThan(1)) {
+                amount = Decimal(1);
+                enableButton = false;
+            }
         }
-        // disable button if resources can't be met
-        let enableButton;
-        if ($.isEmptyObject(actionCost)) {
-            enableButton = true; // always enable free buttons
-        } else {
+        const actionCost = home.getCost(actionData, amount);
+
+        // keep button disabled if the max returned less than 1
+        if (enableButton) {
+            // disable button if resources can't be met
             enableButton = res.checkResources(actionCost);
         }
 
+        if ($.isEmptyObject(actionCost)) {
+            enableButton = true; // always enable free buttons
+        }
+
         let label = actionData.name;
-        if (!$.isEmptyObject(actionCost) && amount > 1) {
-            label += " (" + sharktext.beautify(amount) + ")";
+        if (!$.isEmptyObject(actionCost) && amount.greaterThan(1)) {
+            label += " (" + sharktext.beautify(amount.toNumber()) + ")";
         }
 
         if (enableButton) {
@@ -627,7 +678,7 @@ SharkGame.Home = {
         }
 
         // check for any infinite quantities
-        if (_.some(actionCost, (cost) => cost === Infinity)) {
+        if (_.some(actionCost, (cost) => !cost.isFinite())) {
             label += "<br>Maxed out";
         } else {
             const costText = sharktext.resourceListToString(actionCost, !enableButton, sharkcolor.getElementColor(actionName, "background-color"));
@@ -723,10 +774,10 @@ SharkGame.Home = {
         $.each(action.removedBy, (kind, by) => {
             switch (kind) {
                 case "otherActions":
-                    disable ||= _.some(by, (otherAction) => home.areActionPrereqsMet(otherAction));
+                    disable = disable || _.some(by, (otherAction) => home.areActionPrereqsMet(otherAction));
                     break;
                 case "upgrades":
-                    disable ||= _.some(by, (upgrade) => SharkGame.Upgrades.purchased.includes(upgrade));
+                    disable = disable || _.some(by, (upgrade) => SharkGame.Upgrades.purchased.includes(upgrade));
                     break;
             }
         });
@@ -744,7 +795,7 @@ SharkGame.Home = {
             home.onHomeButton,
             home.onHomeHover,
             home.onHomeUnhover
-        );
+        ); // box-shadow: 0 0 6px 3px #f00, 0 0 3px 1px #ff1a1a inset;
         buttonSelector.html($("<span id='" + actionName + "Label' class='click-passthrough'></span>"));
         home.updateButton(actionName);
         if (SharkGame.Settings.current.showAnimations) {
@@ -753,6 +804,20 @@ SharkGame.Home = {
         if (actionData.newlyDiscovered) {
             buttonSelector.addClass("newlyDiscovered");
         }
+        $.each(actionData.effect.resource, (resourceName) => {
+            // still need to add increases/decreases check here, but this is not relevant to the actual game yet so i dont care
+            if (
+                _.some(
+                    SharkGame.ResourceMap.get(resourceName).income,
+                    (incomeAmount, resource) =>
+                        world.doesResourceExist(resource) &&
+                        ((incomeAmount < 0 && !res.isInCategory(resource, "harmful")) || (res.isInCategory(resource, "harmful") && incomeAmount > 0))
+                )
+            ) {
+                buttonSelector.addClass("gives-consumer");
+                return false;
+            }
+        });
     },
 
     getActionCategory(actionName) {
@@ -762,26 +827,27 @@ SharkGame.Home = {
     },
 
     onHomeButton() {
-        const amountToBuy = sharkmath.getBuyAmount();
+        const amountToBuy = Decimal(sharkmath.getBuyAmount());
         // get related entry in home button table
         const button = $(this);
         if (button.hasClass("disabled")) return;
         const actionName = button.attr("id");
         const action = SharkGame.HomeActions.getActionData(SharkGame.HomeActions.getActionTable(), actionName);
         let actionCost = {};
-        let amount = 0;
-        if (amountToBuy < 0) {
+        let amount = Decimal(0);
+        if (amountToBuy.lessThan(0)) {
             // unlimited mode, calculate the highest we can go
-            const max = Math.floor(home.getMax(action));
+            const max = home.getMax(action);
             // floor max
             if (max > 0) {
                 // convert divisor from a negative number to a positive fraction
-                const divisor = 1 / (Math.floor(amountToBuy) * -1);
-                amount = max * divisor;
+                const divisor = Decimal(1).dividedBy(amountToBuy.times(-1));
+                amount = max.times(divisor);
                 // floor amount
-                amount = Math.floor(amount);
+                Decimal.set({ rounding: Decimal.ROUND_FLOOR });
+                amount = amount.round();
                 // make it worth entering this function
-                if (amount < 1) amount = 1;
+                if (amount.lessThan(1)) amount = Decimal(1);
                 actionCost = home.getCost(action, amount);
             }
         } else {
@@ -796,7 +862,7 @@ SharkGame.Home = {
                 res.changeManyResources(action.effect.resource);
             }
             log.addMessage(SharkGame.choose(action.outcomes));
-        } else if (amount > 0) {
+        } else if (amount.greaterThan(0)) {
             // cost action
             // check cost, only proceed if sufficient resources (prevention against lazy cheating, god, at least cheat in the right resources)
             if (res.checkResources(actionCost)) {
@@ -830,14 +896,18 @@ SharkGame.Home = {
         button.addClass("disabled");
     },
 
-    onHomeHover(_mouseEnterEvent, actionName) {
-        if (!SharkGame.Settings.current.showTooltips) {
+    onHomeHover(mouseEnterEvent, actionName) {
+        if (!SharkGame.Settings.current.showTooltips || (!actionName && !mouseEnterEvent)) {
             return;
         }
+
         if (!actionName) {
             const button = $(this);
             actionName = button.attr("id");
         }
+
+        $("#tooltipbox").removeClass("gives-consumer");
+
         const effects = SharkGame.HomeActions.getActionData(SharkGame.HomeActions.getActionTable(), actionName).effect;
         const validGenerators = {};
         $.each(effects.resource, (resource) => {
@@ -853,7 +923,7 @@ SharkGame.Home = {
         if (!SharkGame.Settings.current.alwaysSingularTooltip) {
             buyingHowMuch = sharkmath.getPurchaseAmount(
                 "doesntmatter",
-                home.getMax(SharkGame.HomeActions.getActionData(SharkGame.HomeActions.getActionTable(), actionName))
+                home.getMax(SharkGame.HomeActions.getActionData(SharkGame.HomeActions.getActionTable(), actionName)).toNumber()
             );
             if (buyingHowMuch < 1) {
                 buyingHowMuch = 1;
@@ -867,8 +937,11 @@ SharkGame.Home = {
         let text = "";
 
         if (_.some(validGenerators, (amount) => amount > 0)) {
-            addedAnyLabelsYet = true;
+            if (_.some(validGenerators, (amount, resourceName) => amount > 0 && res.isInCategory(resourceName, "harmful"))) {
+                $("#tooltipbox").addClass("gives-consumer");
+            }
             text += "<span class='littleTooltipText'>PRODUCE" + (usePlural ? "" : "S") + "</span><br/>";
+            addedAnyLabelsYet = true;
         }
 
         $.each(validGenerators, (incomeResource, amount) => {
@@ -885,8 +958,11 @@ SharkGame.Home = {
         });
 
         if (_.some(validGenerators, (amount) => amount < 0)) {
-            addedAnyLabelsYet = true;
+            if (_.some(validGenerators, (amount, resourceName) => amount < 0 && !res.isInCategory(resourceName, "harmful"))) {
+                $("#tooltipbox").addClass("gives-consumer");
+            }
             text += "<span class='littleTooltipText'>" + (addedAnyLabelsYet ? "and " : "") + "CONSUME" + (usePlural ? "" : "S") + "</span><br/>";
+            addedAnyLabelsYet = true;
         }
 
         $.each(validGenerators, (incomeResource, amount) => {
@@ -905,6 +981,9 @@ SharkGame.Home = {
         const condensedObject = res.condenseNode(effects.resource);
 
         if (!$.isEmptyObject(condensedObject.resAffect.increase)) {
+            if (_.some(validGenerators, (_degree, resourceName) => res.isInCategory(resourceName, "harmful"))) {
+                $("#tooltipbox").addClass("gives-consumer");
+            }
             text += "<span class='littleTooltipText'>" + (addedAnyLabelsYet ? "and " : "") + "INCREASE" + (usePlural ? "" : "S") + "</span><br/>";
             addedAnyLabelsYet = true;
             $.each(condensedObject.resAffect.increase, (affectedResource, degreePerPurchase) => {
@@ -913,12 +992,15 @@ SharkGame.Home = {
                     sharktext.getResourceName(affectedResource, false, false, sharkcolor.getElementColor("tooltipbox", "background-color")) +
                     sharktext.boldString(" gains ") +
                     " by " +
-                    sharktext.boldString(Math.round(buyingHowMuch * degreePerPurchase * 100) + "%") +
+                    sharktext.boldString(sharktext.beautify(buyingHowMuch * degreePerPurchase * 100) + "%") +
                     "<br>";
             });
         }
 
         if (!$.isEmptyObject(condensedObject.resAffect.decrease)) {
+            if (_.some(condensedObject.resAffect.decrease, (_degree, resourceName) => !res.isInCategory(resourceName, "harmful"))) {
+                $("#tooltipbox").addClass("gives-consumer");
+            }
             text += "<span class='littleTooltipText'>" + (addedAnyLabelsYet ? "and " : "") + "DECREASE" + (usePlural ? "" : "S") + "</span><br/>";
             addedAnyLabelsYet = true;
             $.each(condensedObject.resAffect.decrease, (affectedResource, degreePerPurchase) => {
@@ -927,12 +1009,15 @@ SharkGame.Home = {
                     sharktext.getResourceName(affectedResource, false, false, sharkcolor.getElementColor("tooltipbox", "background-color")) +
                     sharktext.boldString(" gains ") +
                     " by " +
-                    sharktext.boldString(Math.round(buyingHowMuch * degreePerPurchase * 100) + "%") +
+                    sharktext.boldString(sharktext.beautify(buyingHowMuch * degreePerPurchase * 100) + "%") +
                     "<br>";
             });
         }
 
         if (!$.isEmptyObject(condensedObject.resAffect.multincrease)) {
+            if (_.some(condensedObject.resAffect.multincrease, (_degree, resourceName) => res.isInCategory(resourceName, "harmful"))) {
+                $("#tooltipbox").addClass("gives-consumer");
+            }
             text +=
                 "<span class='littleTooltipText'>" +
                 (addedAnyLabelsYet ? "and " : "") +
@@ -947,12 +1032,15 @@ SharkGame.Home = {
                     sharktext.getResourceName(affectedResource, false, false, sharkcolor.getElementColor("tooltipbox", "background-color")) +
                     sharktext.boldString(" gains ") +
                     " by " +
-                    sharktext.boldString(Math.round(degreePerPurchase * 100) + "%") +
+                    sharktext.boldString(sharkmath.beautif(degreePerPurchase * 100) + "%") +
                     "<br>";
             });
         }
 
         if (!$.isEmptyObject(condensedObject.resAffect.multdecrease)) {
+            if (_.some(condensedObject.resAffect.multdecrease, (_degree, resourceName) => !res.isInCategory(resourceName, "harmful"))) {
+                $("#tooltipbox").addClass("gives-consumer");
+            }
             text +=
                 "<span class='littleTooltipText'>" +
                 (addedAnyLabelsYet ? "and " : "") +
@@ -967,7 +1055,7 @@ SharkGame.Home = {
                     sharktext.getResourceName(affectedResource, false, false, sharkcolor.getElementColor("tooltipbox", "background-color")) +
                     sharktext.boldString(" gains ") +
                     " by " +
-                    sharktext.boldString(Math.round(degreePerPurchase * 100) + "%") +
+                    sharktext.boldString(sharktext.beautify(degreePerPurchase * 100) + "%") +
                     "<br>";
             });
         }
@@ -980,7 +1068,7 @@ SharkGame.Home = {
                     sharktext.getResourceName(affectedGenerator, false, false, sharkcolor.getElementColor("tooltipbox", "background-color")) +
                     sharktext.boldString(" income ") +
                     " by " +
-                    sharktext.boldString(Math.round(buyingHowMuch * degreePerPurchase * 100) + "%") +
+                    sharktext.boldString(sharktext.beautify(buyingHowMuch * degreePerPurchase * 100) + "%") +
                     "<br>";
             });
         }
@@ -993,7 +1081,7 @@ SharkGame.Home = {
                     sharktext.getResourceName(affectedGenerator, false, false, sharkcolor.getElementColor("tooltipbox", "background-color")) +
                     sharktext.boldString(" income ") +
                     " by " +
-                    sharktext.boldString(Math.round(buyingHowMuch * degreePerPurchase * 100) + "%") +
+                    sharktext.boldString(sharktext.beautify(buyingHowMuch * degreePerPurchase * 100) + "%") +
                     "<br>";
             });
         }
@@ -1012,7 +1100,7 @@ SharkGame.Home = {
                     sharktext.getResourceName(affectedGenerator, false, false, sharkcolor.getElementColor("tooltipbox", "background-color")) +
                     sharktext.boldString(" income ") +
                     " by " +
-                    sharktext.boldString(Math.round(degreePerPurchase * 100) + "%") +
+                    sharktext.boldString(sharktext.beautify(degreePerPurchase * 100) + "%") +
                     "<br>";
             });
         }
@@ -1031,7 +1119,7 @@ SharkGame.Home = {
                     sharktext.getResourceName(affectedGenerator, false, false, sharkcolor.getElementColor("tooltipbox", "background-color")) +
                     sharktext.boldString(" income ") +
                     " by " +
-                    sharktext.boldString(Math.round(degreePerPurchase * 100) + "%") +
+                    sharktext.boldString(sharktext.beautify(degreePerPurchase * 100) + "%") +
                     "<br>";
             });
         }
@@ -1076,7 +1164,7 @@ SharkGame.Home = {
 
     onHomeUnhover() {
         document.getElementById("tooltipbox").innerHTML = "";
-        $("#tooltipbox").removeClass("forHomeButtonOrGrotto").attr("current", "");
+        $("#tooltipbox").removeClass("forHomeButtonOrGrotto").attr("current", "").removeClass("gives-consumer");
     },
 
     getCost(action, amount) {
@@ -1085,22 +1173,24 @@ SharkGame.Home = {
 
         _.each(rawCost, (costObj) => {
             const resource = SharkGame.PlayerResources.get(action.max);
-            const currAmount = resource.amount;
-            const priceIncrease = costObj.priceIncrease;
-            let cost = 0;
+            const currAmount = Decimal(resource.amount);
+            const priceIncrease = Decimal(costObj.priceIncrease);
+            let cost = Decimal(0);
+
             switch (costObj.costFunction) {
                 case "constant":
-                    cost = sharkmath.constantCost(currAmount, currAmount + amount, priceIncrease);
+                    cost = sharkmath.constantCost(currAmount, amount, priceIncrease);
                     break;
                 case "linear":
-                    cost = sharkmath.linearCost(currAmount, currAmount + amount, priceIncrease);
+                    cost = sharkmath.linearCost(currAmount, amount, priceIncrease);
                     break;
                 case "unique":
-                    cost = sharkmath.uniqueCost(currAmount, currAmount + amount, priceIncrease);
+                    cost = sharkmath.uniqueCost(currAmount, amount, priceIncrease);
                     break;
             }
-            if (Math.abs(cost - Math.round(cost)) < SharkGame.EPSILON) {
-                cost = Math.round(cost);
+            Decimal.set({ rounding: Decimal.ROUND_HALF_FLOOR });
+            if (cost.abs().minus(cost.round()).lessThan(SharkGame.EPSILON)) {
+                cost = cost.round();
             }
             calcCost[costObj.resource] = cost;
         });
@@ -1108,35 +1198,37 @@ SharkGame.Home = {
     },
 
     getMax(action) {
-        let max = 1;
+        let max = Decimal(1);
         if (action.max) {
             // max is used as the determining resource for linear cost functions
             const resource = SharkGame.PlayerResources.get(action.max);
-            const currAmount = resource.amount;
-            max = Number.MAX_VALUE;
+            const currAmount = Decimal(resource.amount);
+            max = Decimal(1e308);
             _.each(action.cost, (costObject) => {
-                const costResource = SharkGame.PlayerResources.get(costObject.resource).amount;
-                const priceIncrease = costObject.priceIncrease;
+                const costResource = Decimal(SharkGame.PlayerResources.get(costObject.resource).amount);
+                const priceIncrease = Decimal(costObject.priceIncrease);
+                let subMax = Decimal(-1);
 
-                let subMax = -1;
                 switch (costObject.costFunction) {
                     case "constant":
-                        subMax = sharkmath.constantMax(0, costResource, priceIncrease);
+                        subMax = sharkmath.constantMax(typeof costResource === "object" ? Decimal(0) : 0, costResource, priceIncrease);
                         break;
                     case "linear":
-                        subMax = sharkmath.linearMax(currAmount, costResource, priceIncrease) - currAmount;
+                        subMax = sharkmath.linearMax(currAmount, costResource, priceIncrease).minus(currAmount);
                         break;
                     case "unique":
-                        subMax = sharkmath.uniqueMax(currAmount, costResource, priceIncrease) - currAmount;
+                        subMax = sharkmath.uniqueMax(currAmount, costResource, priceIncrease).minus(currAmount);
                         break;
                 }
                 // prevent flashing action costs
-                if (Math.abs(subMax - Math.round(subMax)) < SharkGame.EPSILON) {
-                    subMax = Math.round(subMax);
+                Decimal.set({ rounding: Decimal.ROUND_HALF_FLOOR });
+                if (subMax.minus(subMax.round()).abs().lessThan(SharkGame.EPSILON)) {
+                    subMax = subMax.round();
                 }
-                max = Math.min(max, subMax);
+                max = Decimal.min(max, subMax);
             });
         }
-        return Math.floor(max);
+        Decimal.set({ rounding: Decimal.ROUND_FLOOR });
+        return max.round();
     },
 };

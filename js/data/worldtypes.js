@@ -83,7 +83,7 @@ SharkGame.WorldTypes = {
         foresight: {
             longDesc:
                 "This world is teeming with life, more than any other place you've seen before. The water is clear, the sand is clean, the fish are plenty. A paradise in every way.",
-            missing: ["laser"],
+            missing: ["laser", "sharkonium"],
             present: ["coral", "dolphin", "whale"],
             tip: "The abudance of resources might may your stay here shorter than others.",
         },
@@ -98,7 +98,6 @@ SharkGame.WorldTypes = {
             "whales",
             "basicmaterials",
             "kelpstuff",
-            "sharkmachines",
             "dolphinmachines",
             "coral",
             "chorus",
@@ -210,23 +209,24 @@ SharkGame.WorldTypes = {
         },
         entry: "You do not know who left this world so torn and empty. Was it some predecessor of yours? Was it you yourself?",
         style: "abandoned",
-        absentResources: [
-            "ice",
-            "heater",
-            "shrimp",
-            "chimaera",
-            "eel",
-            "jellyfish",
-            "algae",
-            "whale",
-            "dolphin",
-            "lobster",
-            "coral",
-            "kelp",
-            "seaApple",
-            "planter",
-            "autoTransmuter",
+        includedResources: [
+            "essence",
+            "sharks",
+            "rays",
+            "crabs",
+            "octopuses",
+            "basicmaterials",
+            "sharkmachines",
+            "octopusmachines",
+            "sponge",
+            "clam",
+            "collector",
+            "tar",
+            "filter",
+            "ancientPart",
+            "world",
         ],
+        absentResources: ["kelp", "seaApple", "planter"],
         modifiers: [
             {
                 type: "restriction",
@@ -240,38 +240,35 @@ SharkGame.WorldTypes = {
     },
     shrouded: {
         name: "Shrouded",
-        desc: "A dark, murky ocean of secrecy and danger.",
+        desc: "A dark, murky ocean of secrecy.",
+        foresight: {
+            get longDesc() {
+                return "It's hard to see more than 10 feet in this place, let alone manage a frenzy. Glowing crystals litter the water, though, so it's never completely dark.";
+            },
+            missing: ["kelp", "crab", "laser"],
+            present: ["jellyfish", "chimaera", "eel"],
+        },
         shortDesc: "dark mysterious",
         entry: "Blackness. You know only blindness in these dark forsaken waters. Foggy memory leads you to follow a stream of crystals.",
         style: "shrouded",
-        /* includedResources: [
+        includedResources: [
+            "essence",
             "sharks",
             "diver",
             "rays",
             "eels",
             "chimaeras",
             "basicmaterials",
-            "sharkmachines"
-        ], */
-        absentResources: ["tar", "ice", "heater", "lobster", "crab", "shrimp", "sponge"],
-        modifiers: [
-            { type: "multiplier", modifier: "planetaryIncome", resource: "crystal", amount: 0.01 },
-            { type: "multiplier", modifier: "planetaryResourceBoost", resource: "crystal", amount: 1 },
-            { type: "multiplier", modifier: "planetaryResourceReciprocalBoost", resource: "fish", amount: 1 },
-            { type: "multiplier", modifier: "planetaryResourceReciprocalBoost", resource: "clam", amount: 1 },
-            { type: "multiplier", modifier: "planetaryResourceReciprocalBoost", resource: "seaApple", amount: 1 },
-            { type: "multiplier", modifier: "planetaryResourceReciprocalBoost", resource: "kelp", amount: 1 },
-            { type: "multiplier", modifier: "planetaryResourceReciprocalBoost", resource: "coral", amount: 1 },
+            "sharkmachines",
+            "arcana",
+            "scholar",
+            "jellyfish",
+            "sacrifice",
         ],
+        absentResources: ["laser"],
+        modifiers: [{ type: "multiplier", modifier: "planetaryIncomeReciprocalMultiplier", resource: "scientist", amount: 1 }],
         gateRequirements: {
-            slots: {
-                jellyfish: 1e7,
-                clam: 1e6,
-                crystal: 1e8,
-                science: 1e7,
-                sharkonium: 1e7,
-                fish: 1e7,
-            },
+            upgrades: ["arcaneActivation"],
         },
     },
     frigid: {
@@ -295,7 +292,16 @@ SharkGame.WorldTypes = {
         entry: "The arctic water freezes away whatever thoughts you may have had. So cold.",
         style: "frigid",
         includedResources: ["sharks", "crabs", "squids", "urchins", "basicmaterials", "kelp", "sharkmachines", "ice", "heater", "essence", "world"],
-        modifiers: [{ type: "multiplier", modifier: "planetaryIncome", resource: "ice", amount: 1 }],
+        modifiers: [
+            {
+                type: "multiplier",
+                modifier: "planetaryIncome",
+                resource: "ice",
+                get amount() {
+                    return 1 / main.getProgressionConstant();
+                },
+            },
+        ],
         gateRequirements: {
             slots: {
                 sand: 1e7,
@@ -329,8 +335,7 @@ SharkGame.WorldTypes = {
         name: "Stone",
         desc: "A world unweathered by ocean currents. It has no natural sand.",
         shortDesc: "rock-bottom",
-        entry:
-            "As you enter, the usual shades of green and yellow are nowhere to be found. You look down, and there's no sand: just cold, hard slate.",
+        entry: "As you enter, the usual shades of green and yellow are nowhere to be found. You look down, and there's no sand: just cold, hard slate.",
         style: "default",
         absentResources: [
             "knowledge",

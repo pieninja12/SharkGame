@@ -66,7 +66,7 @@ SharkGame.Save = {
         return saveString;
     },
 
-    loadGame(importSaveData) {
+    loadGame(importSaveData, preserveSettings) {
         let saveData;
         let saveDataString = importSaveData || localStorage.getItem(SharkGame.Save.saveFileName);
 
@@ -118,6 +118,9 @@ SharkGame.Save = {
             } else if (typeof saveData.saveVersion !== "number" || saveData.saveVersion <= 12) {
                 // After save version 12, packing support was removed; Backwards compatibility is not maintained because gameplay changed significantly after this point.
                 throw new Error("This is a save from before New Frontiers 0.2, after which the save system was changed.");
+            } else if (saveData.saveVersion === 15 || saveData.saveVersion === 16) {
+                // gonna reset aspects, need to inform player
+                SharkGame.missingAspects = true;
             }
 
             if (saveData.saveVersion < currentVersion) {
@@ -151,13 +154,8 @@ SharkGame.Save = {
             SharkGame.timestampRunEnd = saveData.timestampRunEnd;
             SharkGame.timestampSimulated = saveData.timestampLastSave;
 
-            if (saveData.flags) {
-                SharkGame.flags = saveData.flags;
-            }
-
-            if (saveData.persistentFlags) {
-                SharkGame.persistentFlags = saveData.persistentFlags;
-            }
+            SharkGame.flags = saveData.flags ? saveData.flags : {};
+            SharkGame.persistentFlags = saveData.persistentFlags ? saveData.persistentFlags : {};
 
             res.init();
 
@@ -189,12 +187,32 @@ SharkGame.Save = {
             _.each(SharkGame.Aspects, (aspectData) => {
                 aspectData.level = 0;
             });
+
             // load aspects (need to have the cost reducer loaded before world init)
-            $.each(saveData.aspects, (aspectId, level) => {
-                if (_.has(SharkGame.Aspects, aspectId)) {
-                    SharkGame.Aspects[aspectId].level = level;
-                }
-            });
+            if (
+                _.some(saveData.aspects, (_aspectLevel, aspectId) => {
+                    return !_.has(SharkGame.Aspects, aspectId);
+                })
+            ) {
+                // missing aspect detected! this is bad news.
+                // there's no good way to handle this while preserving the player's aspects,
+                // since we don't know how much the player spent to upgrade the missing aspects.
+                // an easy, foolproof fix is to simply reset all aspects and refund all essence.
+                SharkGame.missingAspects = true;
+            }
+
+            if (!SharkGame.missingAspects) {
+                $.each(saveData.aspects, (aspectId, level) => {
+                    if (_.has(SharkGame.Aspects, aspectId)) {
+                        SharkGame.Aspects[aspectId].level = level;
+                    }
+                });
+            } else {
+                res.setResource("essence", res.getTotalResource("essence"));
+            }
+
+            res.minuteHand.init();
+            res.tokens.init();
 
             gateway.init();
             _.each(saveData.completedWorlds, (worldType) => {
@@ -231,18 +249,27 @@ SharkGame.Save = {
                 gateway.planetPool = saveData.planetPool;
             }
 
+            if (!SharkGame.persistentFlags.choseSpeed && !gateway.transitioning) {
+                SharkGame.PaneHandler.showSpeedSelection();
+            }
+            if (SharkGame.missingAspects && !gateway.transitioning) {
+                SharkGame.PaneHandler.showAspectWarning();
+            }
+
             // recalculate income table to make sure that the grotto doesnt freak out if its the first tab that loads
             res.recalculateIncomeTable();
 
-            $.each(saveData.settings, (settingId, currentvalue) => {
-                if (SharkGame.Settings.current[settingId] !== undefined) {
-                    SharkGame.Settings.current[settingId] = currentvalue;
-                    // update anything tied to this setting right off the bat
-                    if (typeof SharkGame.Settings[settingId].onChange === "function") {
-                        SharkGame.Settings[settingId].onChange();
+            if (!preserveSettings) {
+                $.each(saveData.settings, (settingId, currentvalue) => {
+                    if (SharkGame.Settings.current[settingId] !== undefined) {
+                        SharkGame.Settings.current[settingId] = currentvalue;
+                        // update anything tied to this setting right off the bat
+                        if (typeof SharkGame.Settings[settingId].onChange === "function") {
+                            SharkGame.Settings[settingId].onChange();
+                        }
                     }
-                }
-            });
+                });
+            }
 
             // load existence in in-between state,
             // else check for offline mode and process
@@ -270,6 +297,7 @@ SharkGame.Save = {
                 // process this
                 res.recalculateIncomeTable();
                 main.processSimTime(secondsElapsed, true);
+                res.minuteHand.updateMinuteHand(secondsElapsed * 1000);
 
                 // acknowledge long time gaps
                 if (secondsElapsed > 3600) {
@@ -323,15 +351,16 @@ SharkGame.Save = {
         // load the game from this save data string
         try {
             log.clearMessages(false);
+            SharkGame.PaneHandler.wipeStack();
             main.init();
-            SharkGame.Save.loadGame(data);
-            main.correctTitleBar();
+            SharkGame.Save.loadGame(data, data === "{}");
+            SharkGame.TitleBarHandler.correctTitleBar();
             home.discoverActions();
         } catch (err) {
             log.addError(err);
         }
         // refresh current tab
-        main.setUpTab();
+        SharkGame.TabHandler.setUpTab();
     },
 
     exportData() {
@@ -360,11 +389,11 @@ SharkGame.Save = {
     },
 
     wipeSave() {
+        SharkGame.PaneHandler.wipeStack();
         localStorage.setItem(SharkGame.Save.saveFileName + "Backup", localStorage.getItem(SharkGame.Save.saveFileName));
         SharkGame.Save.deleteSave();
         SharkGame.Save.importData("{}");
         log.clearMessages(false);
-        SharkGame.Main.init();
     },
 
     saveUpdaters: [
@@ -836,6 +865,12 @@ SharkGame.Save = {
             save.persistentFlags = {};
             save.planetPool = [];
 
+            return save;
+        },
+
+        // this is a dummy updater, used to simply mark the version number
+        // this version number difference is then used to catalyze a one-time aspect reset
+        function update17(save) {
             return save;
         },
     ],

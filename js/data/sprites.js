@@ -211,7 +211,7 @@ SharkGame.Sprites = {
             h: 200,
         },
     },
-    "chimaera-one": {
+    "shrouded-chimaeras": {
         frame: {
             x: 810,
             y: 410,
@@ -291,7 +291,7 @@ SharkGame.Sprites = {
             h: 200,
         },
     },
-    "eel-one": {
+    "shrouded-eels": {
         frame: {
             x: 406,
             y: 614,
@@ -491,6 +491,26 @@ SharkGame.Sprites = {
             h: 200,
         },
     },
+    "shrouded-arcana": {
+        frame: {
+            x: 810,
+            y: 1838,
+            w: 400,
+            h: 200,
+        },
+        rotated: false,
+        trimmed: false,
+        spriteSourceSize: {
+            x: 0,
+            y: 0,
+            w: 400,
+            h: 200,
+        },
+        sourceSize: {
+            w: 400,
+            h: 200,
+        },
+    },
     "lobster-one": {
         frame: {
             x: 1214,
@@ -575,6 +595,26 @@ SharkGame.Sprites = {
         frame: {
             x: 1214,
             y: 1022,
+            w: 400,
+            h: 200,
+        },
+        rotated: false,
+        trimmed: false,
+        spriteSourceSize: {
+            x: 0,
+            y: 0,
+            w: 400,
+            h: 200,
+        },
+        sourceSize: {
+            w: 400,
+            h: 200,
+        },
+    },
+    "shrouded-distant-chimaeras": {
+        frame: {
+            x: 406,
+            y: 1838,
             w: 400,
             h: 200,
         },
@@ -1191,6 +1231,14 @@ SharkGame.Sprites = {
         sourceSize: { w: 50, h: 50 },
         pivot: { x: 0, y: 0 },
     },
+    "actions/getExplorer": {
+        frame: { x: 2382, y: 96, w: 50, h: 50 },
+        rotated: false,
+        trimmed: false,
+        spriteSourceSize: { x: 0, y: 0, w: 50, h: 50 },
+        sourceSize: { w: 50, h: 50 },
+        pivot: { x: 0, y: 0 },
+    },
     "actions/getExtractionTeam": {
         frame: { x: 2332, y: 96, w: 50, h: 50 },
         rotated: false,
@@ -1327,6 +1375,14 @@ SharkGame.Sprites = {
         sourceSize: { w: 50, h: 50 },
         pivot: { x: 0, y: 0 },
     },
+    "actions/getScavenger": {
+        frame: { x: 2432, y: 46, w: 50, h: 50 },
+        rotated: false,
+        trimmed: false,
+        spriteSourceSize: { x: 0, y: 0, w: 50, h: 50 },
+        sourceSize: { w: 50, h: 50 },
+        pivot: { x: 0, y: 0 },
+    },
     "actions/getScientist": {
         frame: { x: 1042, y: 54, w: 50, h: 50 },
         rotated: false,
@@ -1431,6 +1487,14 @@ SharkGame.Sprites = {
         sourceSize: { w: 50, h: 50 },
         pivot: { x: 0, y: 0 },
     },
+    "actions/makeSacrifice": {
+        frame: { x: 2582, y: 96, w: 50, h: 50 },
+        rotated: false,
+        trimmed: false,
+        spriteSourceSize: { x: 0, y: 0, w: 50, h: 50 },
+        sourceSize: { w: 50, h: 50 },
+        pivot: { x: 0, y: 0 },
+    },
     "actions/pearlConversion": {
         frame: { x: 1146, y: 106, w: 50, h: 50 },
         rotated: false,
@@ -1512,6 +1576,22 @@ SharkGame.Sprites = {
         sourceSize: { w: 50, h: 50 },
         pivot: { x: 0, y: 0 },
     },
+    "general/holeoverlay": {
+        frame: { x: 2396, y: 28, w: 28, h: 28 },
+        rotated: false,
+        trimmed: false,
+        spriteSourceSize: { x: 0, y: 0, w: 50, h: 50 },
+        sourceSize: { w: 50, h: 50 },
+        pivot: { x: 0, y: 0 },
+    },
+    "general/theToken": {
+        frame: { x: 2396, y: 0, w: 28, h: 28 },
+        rotated: false,
+        trimmed: false,
+        spriteSourceSize: { x: 0, y: 0, w: 50, h: 50 },
+        sourceSize: { w: 50, h: 50 },
+        pivot: { x: 0, y: 0 },
+    },
     "planets/abandoned": {
         frame: { x: 2, y: 2, w: 100, h: 100 },
         rotated: false,
@@ -1584,6 +1664,14 @@ SharkGame.Sprites = {
         sourceSize: { w: 100, h: 100 },
         pivot: { x: 0, y: 0 },
     },
+    "technologies/abyssalEnigmas": {
+        frame: { x: 2432, y: 96, w: 50, h: 50 },
+        rotated: false,
+        trimmed: false,
+        spriteSourceSize: { x: 0, y: 0, w: 50, h: 50 },
+        sourceSize: { w: 50, h: 50 },
+        pivot: { x: 0, y: 0 },
+    },
     "technologies/agriculture": {
         frame: { x: 1768, y: 50, w: 50, h: 50 },
         rotated: false,
@@ -1594,6 +1682,14 @@ SharkGame.Sprites = {
     },
     "technologies/aquamarineFusion": {
         frame: { x: 1918, y: 100, w: 50, h: 50 },
+        rotated: false,
+        trimmed: false,
+        spriteSourceSize: { x: 0, y: 0, w: 50, h: 50 },
+        sourceSize: { w: 50, h: 50 },
+        pivot: { x: 0, y: 0 },
+    },
+    "technologies/arcaneCompass": {
+        frame: { x: 2482, y: 96, w: 50, h: 50 },
         rotated: false,
         trimmed: false,
         spriteSourceSize: { x: 0, y: 0, w: 50, h: 50 },
@@ -1634,6 +1730,30 @@ SharkGame.Sprites = {
     },
     "technologies/cetaceanAwareness": {
         frame: { x: 2018, y: 50, w: 50, h: 50 },
+        rotated: false,
+        trimmed: false,
+        spriteSourceSize: { x: 0, y: 0, w: 50, h: 50 },
+        sourceSize: { w: 50, h: 50 },
+        pivot: { x: 0, y: 0 },
+    },
+    "technologies/shroudedChasmExploration": {
+        frame: { x: 1458, y: 106, w: 50, h: 50 },
+        rotated: false,
+        trimmed: false,
+        spriteSourceSize: { x: 0, y: 0, w: 50, h: 50 },
+        sourceSize: { w: 50, h: 50 },
+        pivot: { x: 0, y: 0 },
+    },
+    "technologies/chimaeraMysticism": {
+        frame: { x: 2582, y: 46, w: 50, h: 50 },
+        rotated: false,
+        trimmed: false,
+        spriteSourceSize: { x: 0, y: 0, w: 50, h: 50 },
+        sourceSize: { w: 50, h: 50 },
+        pivot: { x: 0, y: 0 },
+    },
+    "technologies/chimaeraReunification": {
+        frame: { x: 2482, y: 46, w: 50, h: 50 },
         rotated: false,
         trimmed: false,
         spriteSourceSize: { x: 0, y: 0, w: 50, h: 50 },
@@ -1873,6 +1993,14 @@ SharkGame.Sprites = {
         sourceSize: { w: 50, h: 50 },
         pivot: { x: 0, y: 0 },
     },
+    "technologies/superiorSearchAlgorithms": {
+        frame: { x: 2532, y: 96, w: 50, h: 50 },
+        rotated: false,
+        trimmed: false,
+        spriteSourceSize: { x: 0, y: 0, w: 50, h: 50 },
+        sourceSize: { w: 50, h: 50 },
+        pivot: { x: 0, y: 0 },
+    },
     "technologies/superprocessing": {
         frame: { x: 1768, y: 0, w: 50, h: 50 },
         rotated: false,
@@ -1899,6 +2027,14 @@ SharkGame.Sprites = {
     },
     "technologies/underwaterChemistry": {
         frame: { x: 1666, y: 54, w: 50, h: 50 },
+        rotated: false,
+        trimmed: false,
+        spriteSourceSize: { x: 0, y: 0, w: 50, h: 50 },
+        sourceSize: { w: 50, h: 50 },
+        pivot: { x: 0, y: 0 },
+    },
+    "technologies/urchinAttraction": {
+        frame: { x: 2532, y: 46, w: 50, h: 50 },
         rotated: false,
         trimmed: false,
         spriteSourceSize: { x: 0, y: 0, w: 50, h: 50 },

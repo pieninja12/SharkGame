@@ -9,12 +9,7 @@ SharkGame.Lab = {
     sceneImage: "img/events/misc/scene-lab.png",
     sceneDoneImage: "img/events/misc/scene-lab-done.png",
 
-    get discoverReq() {
-        if (SharkGame.Aspects.extensiveOrganization.level >= 2) {
-            return {};
-        }
-        return { resource: { science: 10 } };
-    },
+    discoveryReq: { resource: { science: 10 } },
 
     listEmpty: true,
 
@@ -25,7 +20,7 @@ SharkGame.Lab = {
 
     init() {
         const lab = SharkGame.Lab;
-        main.registerTab(this);
+        SharkGame.TabHandler.registerTab(this);
         // add default purchased state to each upgrade
         lab.resetUpgrades();
     },
@@ -134,12 +129,12 @@ SharkGame.Lab = {
                 if (upgrade.required) {
                     // check previous upgrades
                     if (upgrade.required.upgrades) {
-                        prereqsMet &&= _.every(upgrade.required.upgrades, (requiredUpgradeId) =>
-                            SharkGame.Upgrades.purchased.includes(requiredUpgradeId)
-                        );
+                        prereqsMet =
+                            prereqsMet &&
+                            _.every(upgrade.required.upgrades, (requiredUpgradeId) => SharkGame.Upgrades.purchased.includes(requiredUpgradeId));
                     }
                     // validate if upgrade is possible
-                    prereqsMet &&= lab.isUpgradePossible(upgradeId) && lab.isUpgradeVisible(upgradeId);
+                    prereqsMet = prereqsMet && lab.isUpgradePossible(upgradeId) && lab.isUpgradeVisible(upgradeId);
                 }
                 if (prereqsMet) {
                     lab.listEmpty = false;
@@ -281,7 +276,7 @@ SharkGame.Lab = {
         let allDone = true;
         $.each(upgradeTable, (upgradeId) => {
             if (lab.isUpgradePossible(upgradeId)) {
-                allDone &&= SharkGame.Upgrades.purchased.includes(upgradeId) && lab.isUpgradeVisible(upgradeId);
+                allDone = allDone && SharkGame.Upgrades.purchased.includes(upgradeId) && lab.isUpgradeVisible(upgradeId);
             }
         });
         return allDone;
@@ -304,16 +299,18 @@ SharkGame.Lab = {
                 _.each(upgradeData.required.resources, (resourceId) => {
                     relatedResourcesExist = relatedResourcesExist || world.doesResourceExist(resourceId);
                 });
-                isPossible &&= relatedResourcesExist;
+                isPossible = isPossible && relatedResourcesExist;
             }
 
             // (recursive) check requisite techs
-            isPossible &&= _.every(upgradeData.required.upgrades, (upgrade) => lab.isUpgradePossible(upgrade));
+            isPossible = isPossible && _.every(upgradeData.required.upgrades, (upgrade) => lab.isUpgradePossible(upgrade));
 
-            isPossible &&= _.every(upgradeData.required.totals, (requiredTotal, resourceName) => res.getTotalResource(resourceName) >= requiredTotal);
+            isPossible =
+                isPossible &&
+                _.every(upgradeData.required.totals, (requiredTotal, resourceName) => res.getTotalResource(resourceName) >= requiredTotal);
 
             // check resource cost
-            isPossible &&= _.every(upgradeData.cost, (_amount, resource) => world.doesResourceExist(resource));
+            isPossible = isPossible && _.every(upgradeData.cost, (_amount, resource) => world.doesResourceExist(resource));
         }
 
         return isPossible;

@@ -110,6 +110,8 @@ SharkGame.AspectTree = {
                 aspect.clicked(event);
             }
 
+            tree.updateEssenceCounter();
+
             requestAnimationFrame(() => {
                 tree.drawTable(table);
             });
@@ -192,6 +194,11 @@ SharkGame.AspectTree = {
         const mousePos = tree.getCursorPositionInCanvas(context.canvas, event);
         const offset = tree.cameraOffset;
         const zoom = tree.cameraZoom;
+
+        // this fixes one piece of the sticky tooltip bug on the tree
+        if (gateway.transitioning) {
+            return;
+        }
 
         const staticButton = _.find(tree.staticButtons, ({ posX, posY, width, height }) => {
             return mousePos.posX - posX >= 0 && mousePos.posY - posY >= 0 && mousePos.posX - posX <= width && mousePos.posY - posY <= height;
@@ -307,6 +314,9 @@ SharkGame.AspectTree = {
         // I have no idea how or why
         context.canvas.width = CANVAS_WIDTH;
         context.canvas.height = CANVAS_HEIGHT;
+
+        // setting font for later
+        context.font = "12px Verdana";
 
         // Only one call to getComputedStyle for two properties, otherwise we'd use sharkcolor.getElementColor
         // Also, beware that these values change if the button is pressed, but that should never happen in the same frame
@@ -452,6 +462,23 @@ SharkGame.AspectTree = {
                 width,
                 height
             );
+        }
+        const textToDisplay = tree.getLittleLevelText(name);
+        if (textToDisplay) {
+            context.fillStyle = getComputedStyle(document.getElementById("backToGateway")).color;
+            context.fillText(textToDisplay, posX + width + 5, posY + height / 2);
+            // revert back to the previous fillStyle right afterward
+            context.fillStyle = getComputedStyle(document.getElementById("backToGateway")).backgroundColor;
+        }
+    },
+    getLittleLevelText(aspectName) {
+        if (SharkGame.Aspects[aspectName] && !SharkGame.Aspects[aspectName].getUnlocked()) {
+            const currentLevel = SharkGame.Aspects[aspectName].level;
+            const maxLevel = SharkGame.Aspects[aspectName].max;
+            if (currentLevel < maxLevel) {
+                return currentLevel + " / " + maxLevel;
+            }
+            return "MAX";
         }
     },
     increaseLevel(aspect) {

@@ -69,14 +69,6 @@ SharkGame.Settings = {
         },
     },
 
-    doAspectTable: {
-        defaultSetting: "tree",
-        name: "Aspect Table or Tree",
-        desc: "Whether to draw the visual aspect tree or the more accessible aspect table.",
-        category: "LAYOUT",
-        options: ["tree", "table"],
-    },
-
     groupResources: {
         defaultSetting: true,
         name: "Group Resources",
@@ -106,7 +98,7 @@ SharkGame.Settings = {
         category: "LAYOUT",
         options: ["list", "pile"],
         onChange() {
-            main.changeTab(SharkGame.Tabs.current);
+            SharkGame.TabHandler.changeTab(SharkGame.Tabs.current);
         },
     },
 
@@ -209,7 +201,28 @@ SharkGame.Settings = {
         category: "APPEARANCE",
         options: [true, false],
         onChange() {
-            main.changeTab(SharkGame.Tabs.current);
+            SharkGame.TabHandler.changeTab(SharkGame.Tabs.current);
+        },
+    },
+
+    // ACCESSIBILITY
+
+    doAspectTable: {
+        defaultSetting: "tree",
+        name: "Aspect Table or Tree",
+        desc: "Whether to draw the visual aspect tree or the more accessible aspect table.",
+        category: "ACCESSIBILITY",
+        options: ["tree", "table"],
+    },
+
+    verboseTokenDescriptions: {
+        defaultSetting: false,
+        name: "Verbose Token",
+        desc: "Whether the 'token' mechanic should have text saying where it is.",
+        category: "ACCESSIBILITY",
+        options: [true, false],
+        onChange() {
+            res.tokens.updateTokenDescriptions();
         },
     },
 
@@ -221,6 +234,17 @@ SharkGame.Settings = {
         desc: "Whether to show informational tooltips when hovering over certain stuff.",
         category: "OTHER",
         options: [true, false],
+    },
+
+    gameSpeed: {
+        defaultSetting: "Active",
+        name: "Playstyle",
+        desc: "How you prefer the game. It will adjust to fit your choice.",
+        category: "OTHER",
+        options: [/* "Idle",  */ "Inactive", "Active"],
+        onChange() {
+            main.applyProgressionSpeed();
+        },
     },
 
     updateCheck: {

@@ -21,7 +21,7 @@ SharkGame.Stats = {
         "</br>Disposing specialists returns them to their normal, previous lives.",
 
     init() {
-        main.registerTab(this);
+        SharkGame.TabHandler.registerTab(this);
         stats.recreateIncomeTable = true;
     },
 
@@ -210,7 +210,12 @@ SharkGame.Stats = {
                     const income = SharkGame.ResourceMap.get(resourceId).income;
                     $.each(income, (incomeKey, incomeValue) => {
                         let cell = $("#income-" + resourceId + "-" + incomeKey);
-                        const realIncome = SharkGame.BreakdownIncomeTable.get(resourceId)[incomeKey];
+                        let realIncome;
+                        if (SharkGame.BreakdownIncomeTable.get(resourceId)) {
+                            realIncome = SharkGame.BreakdownIncomeTable.get(resourceId)[incomeKey];
+                        } else {
+                            return true;
+                        }
                         const changeChar = !(realIncome < 0) ? "+" : "";
                         let newValue =
                             "<span style='color: " +
@@ -319,7 +324,7 @@ SharkGame.Stats = {
                 }
 
                 $.each(generatorData.income, (incomeKey, incomeValue) => {
-                    if (world.doesResourceExist(incomeKey) && res.getTotalResource(incomeKey) > 0 && incomeValue !== 0) {
+                    if (world.doesResourceExist(incomeKey) && SharkGame.FlippedBreakdownIncomeTable.get(incomeKey) && incomeValue !== 0) {
                         if (SharkGame.Settings.current.switchStats) {
                             // Switch it!
                             if (!drawnResourceMap.has(incomeKey)) {
@@ -423,7 +428,14 @@ SharkGame.Stats = {
                 const generatorName = SharkGame.Settings.current.switchStats ? subheadingKey : headingName;
                 const incomeValue = subheadingValue;
 
-                const realIncome = SharkGame.BreakdownIncomeTable.get(generatorName)[incomeKey];
+                let realIncome;
+                if (SharkGame.BreakdownIncomeTable.get(generatorName)) {
+                    realIncome = SharkGame.BreakdownIncomeTable.get(generatorName)[incomeKey];
+                } else {
+                    formatCounter++;
+                    return false;
+                }
+
                 const changeChar = !(realIncome < 0) ? "+" : "";
 
                 if (SharkGame.Settings.current.switchStats) {
@@ -732,7 +744,7 @@ SharkGame.Stats = {
                 $.each(generatorCondensedObject.genAffect.increase, (affector, degree) => {
                     const amount = SharkGame.Settings.current.alwaysSingularTooltip ? 1 : res.getResource(affector);
                     text +=
-                        sharktext.boldString(Math.round(degree * 100 * amount) + "%") +
+                        sharktext.boldString(sharktext.beautify(degree * 100 * amount) + "%") +
                         " from " +
                         sharktext.boldString(sharktext.beautify(amount)) +
                         " " +
@@ -746,7 +758,7 @@ SharkGame.Stats = {
                 $.each(generatorCondensedObject.genAffect.decrease, (affector, degree) => {
                     const amount = SharkGame.Settings.current.alwaysSingularTooltip ? 1 : res.getResource(affector);
                     text +=
-                        sharktext.boldString(Math.round(-degree * 100 * amount) + "%") +
+                        sharktext.boldString(sharktext.beautify(-degree * 100 * amount) + "%") +
                         " from " +
                         sharktext.boldString(sharktext.beautify(amount)) +
                         " " +
@@ -760,7 +772,7 @@ SharkGame.Stats = {
                 $.each(generatorCondensedObject.genAffect.multincrease, (affector, degree) => {
                     const amount = SharkGame.Settings.current.alwaysSingularTooltip ? 1 : res.getResource(affector);
                     text +=
-                        sharktext.boldString(Math.round((degree ** amount - 1) * 100) + "%") +
+                        sharktext.boldString(sharktext.beautify((degree ** amount - 1) * 100) + "%") +
                         " from " +
                         sharktext.boldString(sharktext.beautify(amount)) +
                         " " +
@@ -774,7 +786,7 @@ SharkGame.Stats = {
                 $.each(generatorCondensedObject.genAffect.multdecrease, (affector, degree) => {
                     const amount = SharkGame.Settings.current.alwaysSingularTooltip ? 1 : res.getResource(affector);
                     text +=
-                        sharktext.boldString(Math.round((1 - degree ** amount) * 100) + "%") +
+                        sharktext.boldString(sharktext.beautify((1 - degree ** amount) * 100) + "%") +
                         " from " +
                         sharktext.boldString(sharktext.beautify(amount)) +
                         " " +
@@ -795,7 +807,7 @@ SharkGame.Stats = {
                 $.each(generatedCondensedObject.resAffect.increase, (affector, degree) => {
                     const amount = SharkGame.Settings.current.alwaysSingularTooltip ? 1 : res.getResource(affector);
                     text +=
-                        sharktext.boldString(Math.round(degree * 100 * amount) + "%") +
+                        sharktext.boldString(sharktext.beautify(degree * 100 * amount) + "%") +
                         " from " +
                         sharktext.boldString(sharktext.beautify(amount)) +
                         " " +
@@ -809,7 +821,7 @@ SharkGame.Stats = {
                 $.each(generatedCondensedObject.resAffect.decrease, (affector, degree) => {
                     const amount = SharkGame.Settings.current.alwaysSingularTooltip ? 1 : res.getResource(affector);
                     text +=
-                        sharktext.boldString(Math.round(-degree * 100 * amount) + "%") +
+                        sharktext.boldString(sharktext.beautify(-degree * 100 * amount) + "%") +
                         " from " +
                         sharktext.boldString(sharktext.beautify(amount)) +
                         " " +
@@ -823,7 +835,7 @@ SharkGame.Stats = {
                 $.each(generatedCondensedObject.resAffect.multincrease, (affector, degree) => {
                     const amount = SharkGame.Settings.current.alwaysSingularTooltip ? 1 : res.getResource(affector);
                     text +=
-                        sharktext.boldString(Math.round((degree ** amount - 1) * 100) + "%") +
+                        sharktext.boldString(sharktext.beautify((degree ** amount - 1) * 100) + "%") +
                         " from " +
                         sharktext.boldString(sharktext.beautify(amount)) +
                         " " +
@@ -837,7 +849,7 @@ SharkGame.Stats = {
                 $.each(generatedCondensedObject.resAffect.multdecrease, (affector, degree) => {
                     const amount = SharkGame.Settings.current.alwaysSingularTooltip ? 1 : res.getResource(affector);
                     text +=
-                        sharktext.boldString(Math.round((1 - degree ** amount) * 100) + "%") +
+                        sharktext.boldString(sharktext.beautify((1 - degree ** amount) * 100) + "%") +
                         " from " +
                         sharktext.boldString(sharktext.beautify(amount)) +
                         " " +

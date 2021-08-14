@@ -621,6 +621,14 @@ pre {
             //max-width: 90%;
             border-spacing: 0 0.1em;
 
+            .highlightedIncome {
+                background-color: var(--color-light);
+            }
+
+            .highlightedResource {
+                background-color: var(--color-light);
+            }
+
             h3 {
                 padding: 0.2em;
                 width: auto;
@@ -643,6 +651,8 @@ pre {
         padding: 0.1em;
         word-break: break-all;
         word-wrap: break-word;
+        background-repeat: no-repeat;
+        background-position: right;
     }
 
     ul {
@@ -1006,6 +1016,9 @@ button.newlyDiscovered {
     bottom: 15px;
     right: 15px;
     cursor: pointer;
+    &:empty {
+        display: none;
+    }
 }
 
 button {
@@ -1134,6 +1147,10 @@ button {
     .click-passthrough;
 }
 
+.gives-consumer {
+    box-shadow: 0 0 3px 1px #f00 inset;
+}
+
 #tabSceneImage {
     display: block;
     margin: 0.1em auto 0.4em auto;
@@ -1203,6 +1220,7 @@ button {
     font-size: 80%;
     color: var(--color-lighter);
     filter: brightness(130%);
+    position: static;
 }
 
 // PANE
@@ -1540,6 +1558,10 @@ button.planetButton {
     .littleTooltipText {
         font-size: 0.6em;
     }
+
+    &.gives-consumer {
+        box-shadow: 0 0 3px 1px #f00 inset;
+    }
 }
 
 .forHomeButtonOrGrotto {
@@ -1599,4 +1621,82 @@ button.planetButton {
             margin: 0 2px 3px;
         }
     }
+}
+
+#cheatsDisplay {
+    margin-top: 1em;
+    width: 50%;
+}
+
+#cheatButtons {
+    float: left;
+    width: 50%;
+
+    .up-down {
+        display: flex;
+        width: 12em;
+        margin: 1% auto;
+        overflow: hidden;
+        font-size: 90%;
+
+        .up-downText {
+            margin: auto;
+        }
+
+        .up-downButtonContainer {
+            float: right;
+            max-width: 1.5em;
+        }
+    }
+}
+
+.token {
+    margin: 0.5em 0 0.5em 0.5em;
+}
+
+#token-div {
+    display: flex;
+}
+
+#minute-hand-toggle {
+    &.disabled {
+        text-shadow: none;
+    }
+}
+
+.minuteOn {
+    color: #fff;
+    text-shadow: 0 0 0.6em @color-numen;
+}
+
+.minuteOff {
+    color: #fff;
+}
+
+.bigSpeedHeader {
+    font-size: 2em;
+}
+
+.speedButtons {
+    display: flex;
+
+    button {
+        margin: 1em;
+        width: 6em;
+        height: 17em;
+    }
+}
+
+#aspectInnerWarning {
+    padding-top: 1em;
+    padding-bottom: 1em;
+}
+
+.reflectionText {
+    color: white;
+}
+
+#token-div {
+    background-color: var(--color-light);
+    box-shadow: 0 1px 3px #fff;
 }
