@@ -629,11 +629,13 @@ SharkGame.FunFacts = [
 ];
 
 SharkGame.Changelog = {
-    "<a href='https://github.com/spencers145/SharkGame'>New Frontiers</a> 0.2 patch 202108??a": [
+    "<a href='https://github.com/spencers145/SharkGame'>New Frontiers</a> 0.2 patch 20210814a": [
         "Added Shrouded worldtype.",
-        "Changed the aspect tree and its aspects significantly. All essence must be refunded and all aspects must be reset because of this. Sorry!",
+        "Retooled Haven worldtype.",
+        "Changed the aspect tree and its aspects significantly. All aspects must be refunded because of this. Sorry!",
         "Implemented a basic 'playstyle' choice. The game will adjust pacing to suit your choice.",
-        "You can now access the options menu in the gateway.",
+        "Improved resource table tooltips.",
+        "You can now access the options menu in the gateway. (this took a surprising amount of work)",
         "'Wipe Save' now doesn't reset any settings. Added a separate button to reset settings.",
         "Added sprites.",
         "Greatly improved game stability when dealing with large numbers (above a quadrillion).",
