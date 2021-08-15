@@ -335,14 +335,39 @@ SharkGame.Gateway = {
         // create pool of qualified types
         const qualifiedPlanetTypes = gateway.allowedWorlds.slice(0);
 
+        // look for uncompleted planet types
+        const uncompletedPlanetTypes = gateway.allowedWorlds.slice(0);
+        _.each(gateway.completedWorlds, (worldtype) => {
+            const typeIndex = uncompletedPlanetTypes.indexOf(worldtype);
+            if (typeIndex > -1) {
+                uncompletedPlanetTypes.splice(typeIndex, 1);
+            }
+        });
+
+        // are there any? if so, set a random index out of the number of planets we're choosing
+        // the choice with this index is guaranteed to be an uncompleted planet
+        let guaranteeWhichWorld;
+        if (uncompletedPlanetTypes.length > 0) {
+            guaranteeWhichWorld = Math.floor(Math.random() * numPlanets);
+        }
+
         // pull random types from the pool
         // for each type pulled, generated a random level for the planet
         // then add to the planet pool
         for (let i = 0; i < numPlanets; i++) {
-            const choice = SharkGame.choose(qualifiedPlanetTypes);
+            let choice;
+            if (uncompletedPlanetTypes.length > 0 && guaranteeWhichWorld === i) {
+                choice = SharkGame.choose(uncompletedPlanetTypes);
+            } else {
+                choice = SharkGame.choose(qualifiedPlanetTypes);
+            }
             const index = qualifiedPlanetTypes.indexOf(choice);
             // take it out of the qualified pool (avoid duplicates)
             qualifiedPlanetTypes.splice(index, 1);
+
+            if (uncompletedPlanetTypes.indexOf(choice) > -1) {
+                uncompletedPlanetTypes.splice(uncompletedPlanetTypes.indexOf(choice), 1);
+            }
 
             // add choice to pool
             gateway.planetPool.push({
@@ -495,7 +520,7 @@ SharkGame.Gateway = {
 
 SharkGame.Gateway.PresenceFeelings = {
     clam: "hard things?",
-    sponge: "soft things?",
+    sponge: "porous things?",
     jellyfish: "squishy things?",
     coral: "colorful things?",
     dolphin: "annoying scholars?",
@@ -583,6 +608,7 @@ SharkGame.Gateway.Messages = {
             "Do you bring life, or do you bring death, worldbuilder?",
             "Was that world not your home?",
             "A blue world. A dream of a former life, perhaps.",
+            "Do you wonder where the lobsters came from?",
         ],
         haven: [
             "A beautiful paradise. It may be a while before you find a world so peaceful.",
@@ -595,18 +621,17 @@ SharkGame.Gateway.Messages = {
         tempestuous: [
             "You braved the maelstrom and came from it unscathed.",
             "Charge through the whirlpool. Give no quarter to the storm.",
-            "The swordfish feared your presence, with good reason.",
             "The revolt was unavoidable. It was merely a matter of time.",
-            "Do you wonder why the swordfish obeyed out of fear?",
-            "Who is it that the swordfish are so afraid of?",
+            "Do you wonder why the swordfish obeyed?",
+            "Do you wonder what the swordfish were so startled by?",
         ],
         violent: [
             "The boiling ocean only stirred you on.",
             "You are forged from the geothermal vents.",
             "The shrimp are no simpletons. They are merely focused.",
-            "This environment is ideal for life. Just not for your kind.",
+            "That environment is ideal for life. Just not for your kind.",
             "Do you wonder how the shrimp learned to become something more?",
-            "The shrimp are intolerant of the ways of industry. Remember: that is okay.",
+            "The shrimp are intolerant of shark industry. Remember: that is okay.",
         ],
         abandoned: [
             "Do you wonder who abandoned the machines?",
@@ -618,6 +643,8 @@ SharkGame.Gateway.Messages = {
             "What did you learn from the dark world?",
             "To fall into darkness is easy, but to escape it is another story.",
             "Such strange forces guide the chimaeras, just as strange forces guide you.",
+            "Do you wonder where the shards came from?",
+            "Do you wonder who the ancients were?",
         ],
         frigid: [
             "...did you miss the rays?",
