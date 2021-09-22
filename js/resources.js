@@ -318,7 +318,13 @@ SharkGame.Resources = {
     },
 
     getSpecialMultiplier() {
-        return res.specialMultiplier;
+        const essence = res.getResource("essence");
+        let specialMultiplier = res.specialMultiplier;
+            
+        if (essence >= 1) {
+            specialMultiplier += (essence / 100)
+        }
+        return specialMultiplier
     },
 
     getIncome(resource) {
